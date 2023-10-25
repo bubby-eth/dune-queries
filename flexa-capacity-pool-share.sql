@@ -26,7 +26,6 @@ WITH
                 WHEN output_0 = 0xcccccccc81dbde757c384900706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Dogecoin'
                 WHEN output_0 = 0xcccccccc22315143f82c475f706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Solana'
                 WHEN output_0 = 0xcccccccc5eb25f6982e04b21706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zcash'
-                ELSE 'OTHER'
             END AS "pool"
         FROM
             amp_ethereum.Amp_call_transferByPartition
@@ -61,7 +60,6 @@ WITH
                 WHEN _partition = 0xcccccccc81dbde757c384900706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Dogecoin'
                 WHEN _partition = 0xcccccccc22315143f82c475f706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Solana'
                 WHEN _partition = 0xcccccccc5eb25f6982e04b21706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zcash'
-                ELSE 'OTHER'
             END AS "pool"
         FROM
             amp_ethereum.Amp_call_transferByPartition
@@ -96,7 +94,6 @@ WITH
                 WHEN output_0 = 0xcccccccc81dbde757c384900706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Dogecoin'
                 WHEN output_0 = 0xcccccccc22315143f82c475f706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Solana'
                 WHEN output_0 = 0xcccccccc5eb25f6982e04b21706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zcash'
-                ELSE 'OTHER'
             END AS "pool"
         FROM
             amp_ethereum.Amp_call_transferByPartition
@@ -131,7 +128,6 @@ WITH
                 WHEN _partition = 0xcccccccc81dbde757c384900706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Dogecoin'
                 WHEN _partition = 0xcccccccc22315143f82c475f706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Solana'
                 WHEN _partition = 0xcccccccc5eb25f6982e04b21706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zcash'
-                ELSE 'OTHER'
             END AS "pool"
         FROM
             amp_ethereum.Amp_call_transferByPartition
@@ -161,12 +157,10 @@ SELECT
             cq."pool"
         ORDER BY
             cq."formatted_date"
-    ) AS running_total /*   SUM(cq."balance"* price_query."price") OVER (PARTITION BY cq."pool" ORDER BY cq."formatted_date") AS value */
+    ) AS running_total,
+    cq."balance"
 FROM
-    capacity_query AS cq /* LEFT OUTER JOIN price_query */
-    /* ON              price_query.contract_address = cq.contract_address */
-WHERE
-    cq."pool" <> 'OTHER'
+    capacity_query AS cq
 ORDER BY
-    1,
+    1 DESC,
     2

@@ -27,6 +27,7 @@ WITH
         WHEN output_0 = 0xcccccccc5eb25f6982e04b21706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zcash'
         WHEN output_0 = 0xcccccccc807d297dbf73441c706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zashi'
         WHEN output_0 = 0xcccccccca4560ce3f67c4c16706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Nighthawk'
+        WHEN output_0 = 0xcccccccc3ff751f2e7c64f16706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Base'
       END AS "pool"
     FROM
       amp_ethereum.Amp_call_transferByPartition
@@ -62,6 +63,7 @@ WITH
         WHEN _partition = 0xcccccccc5eb25f6982e04b21706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zcash'
         WHEN _partition = 0xcccccccc807d297dbf73441c706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zashi'
         WHEN _partition = 0xcccccccca4560ce3f67c4c16706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Nighthawk'
+        WHEN _partition = 0xcccccccc3ff751f2e7c64f16706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Base'
       END AS "pool"
     FROM
       amp_ethereum.Amp_call_transferByPartition
@@ -97,6 +99,7 @@ WITH
         WHEN output_0 = 0xcccccccc5eb25f6982e04b21706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zcash'
         WHEN output_0 = 0xcccccccc807d297dbf73441c706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zashi'
         WHEN output_0 = 0xcccccccca4560ce3f67c4c16706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Nighthawk'
+        WHEN output_0 = 0xcccccccc3ff751f2e7c64f16706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Base'
       END AS "pool"
     FROM
       amp_ethereum.Amp_call_transferByPartition
@@ -132,6 +135,7 @@ WITH
         WHEN _partition = 0xcccccccc5eb25f6982e04b21706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zcash'
         WHEN _partition = 0xcccccccc807d297dbf73441c706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Zashi'
         WHEN _partition = 0xcccccccca4560ce3f67c4c16706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Nighthawk'
+        WHEN _partition = 0xcccccccc3ff751f2e7c64f16706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN 'Base'
       END AS "pool"
     FROM
       amp_ethereum.Amp_call_transferByPartition

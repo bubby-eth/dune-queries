@@ -39,6 +39,7 @@ WITH
                         WHEN 0xcfBbAE9DCE9a207BaB01E1589e345D3Edc65D842 THEN 'Zcash'
                         WHEN 0xCD234A11B26F42B391C2838Beb3DA3Bb3A590B66 THEN 'Tezos'
                         WHEN 0xB8706F2dd1Ce8A4328D254cF14271e0fbB5E268A THEN 'Burner'
+                        WHEN 0x1693DeCE45b908Ed25244E8b7FFdE4760cB9Ca24 THEN 'Nexus'
                     END AS pool_name,
                     varbinary_to_uint256 (varbinary_substring (data, 37, 32)) / 1e18 AS token_amount
                 FROM
@@ -62,7 +63,8 @@ WITH
                         0x57F6f249DB02083362D43E2D02dD791068Df30C6,
                         0xcfBbAE9DCE9a207BaB01E1589e345D3Edc65D842,
                         0xCD234A11B26F42B391C2838Beb3DA3Bb3A590B66,
-                        0xB8706F2dd1Ce8A4328D254cF14271e0fbB5E268A
+                        0xB8706F2dd1Ce8A4328D254cF14271e0fbB5E268A,
+                        0x1693DeCE45b908Ed25244E8b7FFdE4760cB9Ca24
                     )
                     AND block_time > TRY_CAST('2024-11-01' AS TIMESTAMP)
                     AND varbinary_substring (data, 1, 4) = 0x3e12170f
@@ -88,6 +90,7 @@ WITH
                         WHEN 0xcfBbAE9DCE9a207BaB01E1589e345D3Edc65D842 THEN 'Zcash'
                         WHEN 0xCD234A11B26F42B391C2838Beb3DA3Bb3A590B66 THEN 'Tezos'
                         WHEN 0xB8706F2dd1Ce8A4328D254cF14271e0fbB5E268A THEN 'Burner'
+                        WHEN 0x1693DeCE45b908Ed25244E8b7FFdE4760cB9Ca24 THEN 'Nexus'
                     END AS pool_name,
                     varbinary_to_uint256 (varbinary_substring (data, 69, 32)) / 1e18 AS token_amount
                 FROM
@@ -111,7 +114,8 @@ WITH
                         0x57F6f249DB02083362D43E2D02dD791068Df30C6,
                         0xcfBbAE9DCE9a207BaB01E1589e345D3Edc65D842,
                         0xCD234A11B26F42B391C2838Beb3DA3Bb3A590B66,
-                        0xB8706F2dd1Ce8A4328D254cF14271e0fbB5E268A
+                        0xB8706F2dd1Ce8A4328D254cF14271e0fbB5E268A,
+                        0x1693DeCE45b908Ed25244E8b7FFdE4760cB9Ca24
                     )
                     AND block_time > TRY_CAST('2024-11-01' AS TIMESTAMP)
                     AND varbinary_substring (data, 1, 4) = 0x34048584
@@ -137,6 +141,7 @@ WITH
                         WHEN 0xcfBbAE9DCE9a207BaB01E1589e345D3Edc65D842 THEN 'Zcash'
                         WHEN 0xCD234A11B26F42B391C2838Beb3DA3Bb3A590B66 THEN 'Tezos'
                         WHEN 0xB8706F2dd1Ce8A4328D254cF14271e0fbB5E268A THEN 'Burner'
+                        WHEN 0x1693DeCE45b908Ed25244E8b7FFdE4760cB9Ca24 THEN 'Nexus'
                     END AS pool_name,
                     - varbinary_to_uint256 (varbinary_substring (data, 37, 32)) / 1e18 AS token_amount
                 FROM
@@ -160,7 +165,8 @@ WITH
                         0x57F6f249DB02083362D43E2D02dD791068Df30C6,
                         0xcfBbAE9DCE9a207BaB01E1589e345D3Edc65D842,
                         0xCD234A11B26F42B391C2838Beb3DA3Bb3A590B66,
-                        0xB8706F2dd1Ce8A4328D254cF14271e0fbB5E268A
+                        0xB8706F2dd1Ce8A4328D254cF14271e0fbB5E268A,
+                        0x1693DeCE45b908Ed25244E8b7FFdE4760cB9Ca24
                     )
                     AND block_time > TRY_CAST('2024-11-01' AS TIMESTAMP)
                     AND varbinary_substring (data, 1, 4) = 0xc2a672e0

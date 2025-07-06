@@ -126,7 +126,7 @@ WITH
       -- 4e) multisig stakeReleasableTokensFrom (+)
       SELECT
         block_time,
-        varbinary_to_uint256(varbinary_substring(substr(data, 357, 352), 37, 32)) / 1e18 AS token_amount
+        varbinary_to_uint256(varbinary_substring(substr(data, 357, 352), 69, 32)) / 1e18 AS token_amount
       FROM ethereum.transactions t
       JOIN address_list a
         ON varbinary_ltrim(substr(t.data, 5, 32)) = a.addr

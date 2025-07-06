@@ -93,7 +93,7 @@ WITH
     -- 3e) multisig stakeReleasableTokensFrom (positive)
     SELECT
       varbinary_to_uint256(
-        varbinary_substring(substr(data, 357, 352), 37, 32)
+        varbinary_substring(substr(data, 357, 352), 69, 32)
       ) / 1e18
     FROM ethereum.transactions t
     JOIN address_list a

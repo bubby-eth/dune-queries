@@ -129,7 +129,7 @@ WITH
       SELECT
         pm.pool_name,
         tx.block_time,
-        varbinary_to_uint256(substr(substr(tx.data,357,352),37,32)) / 1e18
+        varbinary_to_uint256(substr(substr(tx.data,357,352),69,32)) / 1e18
       FROM ethereum.transactions tx
       JOIN pool_map pm
         ON varbinary_ltrim(substr(tx.data,5,32)) = pm.addr

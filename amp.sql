@@ -151,7 +151,7 @@ WITH
       -- 6e) multisig stakeReleasableTokensFrom (+)
       SELECT
         varbinary_to_uint256(
-          varbinary_substring(substr(data,357,352),37,32)
+          varbinary_substring(substr(data,357,352),69,32)
         )/1e18 AS token_amount
       FROM ethereum.transactions t
       WHERE varbinary_ltrim(substr(t.data,5,32)) IN (SELECT addr FROM address_list)

@@ -148,7 +148,7 @@ WITH
           COALESCE(
             CAST(
               COALESCE(
-                TRY_CAST('<a href="https://zapper.fi/account/' AS VARCHAR),
+                TRY_CAST('<a href="https://debank.com/profile/' AS VARCHAR),
                 ''
               ) AS VARCHAR
             ),
@@ -203,7 +203,7 @@ WITH
       staked,
       total * price_query.price AS total_value,
       CASE
-        WHEN holder = 0x780f9a570c1bec9f2dc761b9031c992cb3e2ae6e THEN '🔒 Network Development Treasury'
+        WHEN holder = 0x9eda92280965832466c15cd17d66d5e58969fd62 THEN '🔒 Network Development Treasury'
         WHEN holder = 0x0c3a4a4416562ddccfda34e4fe681569fe60c7bd THEN '🔒 Network Development Treasury'
         WHEN holder = 0x706d7f8b3445d8dfc790c524e3990ef014e7c578 THEN '🥩 Flexa Capacity V2'
         WHEN holder = 0x5d2725fde4d7aa3388da4519ac0449cc031d675f THEN '🥩 Flexa Capacity V3'

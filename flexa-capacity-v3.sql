@@ -68,12 +68,14 @@ WITH
   net_tokens_by_pool AS (
     SELECT
       pool_name,
-      SUM(token_amount) AS net_tokens
+      SUM(token_amount)  AS net_tokens,
+      SUM(deposit_count) AS deposits
     FROM (
       -- a) stake
       SELECT
         pm.pool_name,
-        varbinary_to_uint256(substr(tx.data,37,32)) / 1e18 AS token_amount
+        varbinary_to_uint256(substr(tx.data,37,32)) / 1e18 AS token_amount,
+        1 AS deposit_count
       FROM ethereum.transactions tx
       JOIN pool_map pm ON tx."to" = pm.addr
       WHERE tx.block_time > TRY_CAST('2024-11-01' AS TIMESTAMP)
@@ -85,7 +87,8 @@ WITH
       -- b) multisig stake
       SELECT
         pm.pool_name,
-        varbinary_to_uint256(substr(substr(tx.data,357,352),37,32)) / 1e18
+        varbinary_to_uint256(substr(substr(tx.data,357,352),37,32)) / 1e18 AS token_amount,
+        1 AS deposit_count
       FROM ethereum.transactions tx
       JOIN pool_map pm
         ON varbinary_ltrim(substr(tx.data,5,32)) = pm.addr
@@ -98,7 +101,8 @@ WITH
       -- c) stakeReleasableTokensFrom
       SELECT
         pm.pool_name,
-        varbinary_to_uint256(substr(tx.data,69,32)) / 1e18
+        varbinary_to_uint256(substr(tx.data,69,32)) / 1e18 AS token_amount,
+        1 AS deposit_count
       FROM ethereum.transactions tx
       JOIN pool_map pm ON tx."to" = pm.addr
       WHERE tx.block_time > TRY_CAST('2024-11-01' AS TIMESTAMP)
@@ -110,7 +114,8 @@ WITH
       -- d) multisig stakeReleasableTokensFrom
       SELECT
         pm.pool_name,
-        varbinary_to_uint256(substr(substr(tx.data,357,352),69,32)) / 1e18
+        varbinary_to_uint256(substr(substr(tx.data,357,352),69,32)) / 1e18 AS token_amount,
+        1 AS deposit_count
       FROM ethereum.transactions tx
       JOIN pool_map pm
         ON varbinary_ltrim(substr(tx.data,5,32)) = pm.addr
@@ -123,7 +128,8 @@ WITH
       -- e) unstake (negative)
       SELECT
         pm.pool_name,
-       -varbinary_to_uint256(substr(tx.data,37,32)) / 1e18
+       -varbinary_to_uint256(substr(tx.data,37,32)) / 1e18 AS token_amount,
+        0 AS deposit_count
       FROM ethereum.transactions tx
       JOIN pool_map pm ON tx."to" = pm.addr
       WHERE tx.block_time > TRY_CAST('2024-11-01' AS TIMESTAMP)
@@ -135,7 +141,8 @@ WITH
       -- f) multisig unstake (negative)
       SELECT
         pm.pool_name,
-       -varbinary_to_uint256(substr(substr(tx.data,357,352),37,32)) / 1e18
+       -varbinary_to_uint256(substr(substr(tx.data,357,352),37,32)) / 1e18 AS token_amount,
+        0 AS deposit_count
       FROM ethereum.transactions tx
       JOIN pool_map pm
         ON varbinary_ltrim(substr(tx.data,5,32)) = pm.addr
@@ -146,11 +153,12 @@ WITH
     GROUP BY pool_name
   )
 
--- 5) final USD‐valued summary
+-- 5) final USD-valued summary
 SELECT
   n.pool_name,
   n.net_tokens,
-  n.net_tokens * p.price AS usd_value
+  n.net_tokens * p.price AS usd_value,
+  n.deposits
 FROM net_tokens_by_pool n
 CROSS JOIN price_query p
 ORDER BY usd_value DESC;

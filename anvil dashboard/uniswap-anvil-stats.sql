@@ -5,5 +5,5 @@ SELECT
 FROM
   dex.trades
 WHERE
-  token_bought_address = 0x2Ca9242c1810029Efed539F1c60D68B63AD01BFc
-  OR token_sold_address = 0x2Ca9242c1810029Efed539F1c60D68B63AD01BFc
+  token_bought_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
+  OR token_sold_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597

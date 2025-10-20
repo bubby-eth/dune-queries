@@ -8,7 +8,7 @@ WITH buys AS (
     dex.trades
   WHERE
     block_time > CURRENT_TIMESTAMP - INTERVAL '30' day
-    AND token_bought_address = 0x2Ca9242c1810029Efed539F1c60D68B63AD01BFc
+    AND token_bought_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
   GROUP BY
     1
 ),
@@ -22,7 +22,7 @@ sells AS (
     dex.trades
   WHERE
     block_time > CURRENT_TIMESTAMP - INTERVAL '30' day
-    AND token_sold_address = 0x2Ca9242c1810029Efed539F1c60D68B63AD01BFc
+    AND token_sold_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
   GROUP BY
     1
 )

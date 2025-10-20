@@ -7,8 +7,8 @@ WITH trades AS (
   FROM
     dex.trades
   WHERE
-    block_time > TIMESTAMP '2024-06-17 13:00:00'
-    AND token_bought_address = 0x2Ca9242c1810029Efed539F1c60D68B63AD01BFc
+    block_time > TIMESTAMP '2025-10-08 20:50'
+    AND token_bought_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
   
   UNION ALL
   
@@ -20,8 +20,8 @@ WITH trades AS (
   FROM
     dex.trades
   WHERE
-    block_time > TIMESTAMP '2024-06-17 13:00:00'
-    AND token_sold_address = 0x2Ca9242c1810029Efed539F1c60D68B63AD01BFc
+    block_time > TIMESTAMP '2025-10-08 20:50'
+    AND token_sold_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
 )
 SELECT
   date,
@@ -34,7 +34,7 @@ FROM
 UNION ALL
 
 SELECT
-  TIMESTAMP '2024-06-17 13:01:00' AS date,
+  TIMESTAMP '2025-10-08 20:50' AS date,
   0 AS quantity,
   0 AS price,
   'none' AS type

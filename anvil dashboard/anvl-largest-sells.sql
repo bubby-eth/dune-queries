@@ -6,7 +6,7 @@ WITH address_balances AS (
     FROM
       erc20_ethereum.evt_Transfer AS tr
     WHERE
-      contract_address = 0x2Ca9242c1810029Efed539F1c60D68B63AD01BFc
+      contract_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
     UNION ALL
     SELECT
       tr."to" AS address,
@@ -14,7 +14,7 @@ WITH address_balances AS (
     FROM
       erc20_ethereum.evt_Transfer AS tr
     WHERE
-      contract_address = 0x2Ca9242c1810029Efed539F1c60D68B63AD01BFc
+      contract_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
   )
   SELECT
     address,
@@ -43,7 +43,10 @@ SELECT
     token_sold_amount,
     amount_usd,
     amount_usd / token_sold_amount AS price,
-    COALESCE(ab.quantity, 0) AS remaining_balance,
+    CASE
+        WHEN COALESCE(ab.quantity, 0) < 1e-6 THEN 0
+        ELSE COALESCE(ab.quantity, 0)
+    END AS remaining_balance,
     CONCAT(
         '<a href="https://etherscan.io/tx/', 
         CAST(tx_hash AS VARCHAR), 
@@ -53,17 +56,15 @@ SELECT
             '...',
             SUBSTRING(CAST(tx_hash AS VARCHAR) FROM 63 FOR 4)), 
         '</a>'
-    ) AS tx_hash
+    ) AS tx_hash,
+    DATE_DIFF('day', block_time, CURRENT_TIMESTAMP) AS days_ago
 FROM
     dex.trades
 LEFT JOIN
     address_balances ab ON dex.trades.tx_from = ab.address
 WHERE
     block_time > CURRENT_TIMESTAMP - INTERVAL '7' DAY
-    AND token_sold_address = 0x2Ca9242c1810029Efed539F1c60D68B63AD01BFc
-    AND tx_from NOT IN (        /*exclude Liquidity Provisioner*/
-        0x4f6ccfe33d93e54ff6e9aebff39ffa7816266876
-    )
+    AND token_sold_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
 ORDER BY
     token_sold_amount DESC
 LIMIT 10;

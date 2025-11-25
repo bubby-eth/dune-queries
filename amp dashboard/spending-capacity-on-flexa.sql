@@ -29,89 +29,64 @@ WITH
     CROSS JOIN UNNEST(v.addrs) AS t(addr)
   ),
 
-  -- 2) V2 deposits/transfers in & out of the AMP contract
-  deposit_query AS (
-    -- 2a) incoming transfers (+)
-    SELECT
-      CAST("value" AS INT256) / 1e18 AS balance,
-      "contract_address",
-      DATE_TRUNC('day', "evt_block_time") AS formatted_date
-    FROM erc20_ethereum.evt_Transfer
-    WHERE "to"   = 0x706d7f8b3445d8dfc790c524e3990ef014e7c578
-      AND "from" <> 0x706d7f8b3445d8dfc790c524e3990ef014e7c578
-      AND "contract_address" = 0xff20817765cb7f73d4bde2e66e067e58d11095c2
-
-    UNION ALL
-
-    -- 2b) outgoing transfers (−)
-    SELECT
-      -CAST("value" AS INT256) / 1e18 AS balance,
-      "contract_address",
-      DATE_TRUNC('day', "evt_block_time") AS formatted_date
-    FROM erc20_ethereum.evt_Transfer
-    WHERE "from" = 0x706d7f8b3445d8dfc790c524e3990ef014e7c578
-      AND "to"   <> 0x706d7f8b3445d8dfc790c524e3990ef014e7c578
-      AND "contract_address" = 0xff20817765cb7f73d4bde2e66e067e58d11095c2
-  ),
-
-  -- 3) daily AMP price (for V2 & V3 USD calc)
+  -- 2) daily AMP price (for V3 USD calc)
   price_query AS (
     SELECT
       DATE_TRUNC('day', minute) AS the_date,
       AVG(price)                AS price
     FROM prices.usd
-    WHERE blockchain        = 'ethereum'
-      AND "contract_address" = 0xff20817765cb7f73d4bde2e66e067e58d11095c2
-      AND minute > TIMESTAMP '2020-08-01'
+    WHERE blockchain         = 'ethereum'
+      AND contract_address   = 0xff20817765cb7f73d4bde2e66e067e58d11095c2
+      AND minute >= TIMESTAMP '2024-11-01'
     GROUP BY 1
   ),
 
-  -- 4) V3 staking inflows & outflows by day
+  -- 3) V3 staking inflows and outflows by day
   v3_staked AS (
     SELECT
       DATE_TRUNC('day', block_time) AS day,
       SUM(token_amount)             AS daily_staked
     FROM (
-      -- 4a) direct stake (+)
+      -- 3a) direct stake (+)
       SELECT
         block_time,
         varbinary_to_uint256(varbinary_substring(data, 37, 32)) / 1e18 AS token_amount
       FROM ethereum.transactions t
       JOIN address_list a
-        ON t."to" = a.addr
+        ON t.to = a.addr
       WHERE t.block_time > TIMESTAMP '2024-11-01'
         AND varbinary_substring(t.data, 1, 4) = 0x3e12170f
         AND t.success = TRUE
 
       UNION ALL
 
-      -- 4b) direct stakeReleasableTokensFrom (+)
+      -- 3b) direct stakeReleasableTokensFrom (+)
       SELECT
         block_time,
         varbinary_to_uint256(varbinary_substring(data, 69, 32)) / 1e18 AS token_amount
       FROM ethereum.transactions t
       JOIN address_list a
-        ON t."to" = a.addr
+        ON t.to = a.addr
       WHERE t.block_time > TIMESTAMP '2024-11-01'
         AND varbinary_substring(t.data, 1, 4) = 0x34048584
         AND t.success = TRUE
 
       UNION ALL
 
-      -- 4c) direct unstake (−)
+      -- 3c) direct unstake (−)
       SELECT
         block_time,
         -varbinary_to_uint256(varbinary_substring(data, 37, 32)) / 1e18 AS token_amount
       FROM ethereum.transactions t
       JOIN address_list a
-        ON t."to" = a.addr
+        ON t.to = a.addr
       WHERE t.block_time > TIMESTAMP '2024-11-01'
         AND varbinary_substring(t.data, 1, 4) = 0xc2a672e0
         AND t.success = TRUE
 
       UNION ALL
 
-      -- 4d) multisig stake (+)
+      -- 3d) multisig stake (+)
       SELECT
         block_time,
         varbinary_to_uint256(varbinary_substring(substr(data, 357, 352), 37, 32)) / 1e18 AS token_amount
@@ -124,7 +99,7 @@ WITH
 
       UNION ALL
 
-      -- 4e) multisig stakeReleasableTokensFrom (+)
+      -- 3e) multisig stakeReleasableTokensFrom (+)
       SELECT
         block_time,
         varbinary_to_uint256(varbinary_substring(substr(data, 357, 352), 69, 32)) / 1e18 AS token_amount
@@ -137,7 +112,7 @@ WITH
 
       UNION ALL
 
-      -- 4f) multisig unstake (−)
+      -- 3f) multisig unstake (−)
       SELECT
         block_time,
         -varbinary_to_uint256(varbinary_substring(substr(data, 357, 352), 37, 32)) / 1e18 AS token_amount
@@ -152,33 +127,19 @@ WITH
   )
 
 SELECT
-  dq.formatted_date,
-  -- daily V2 net deposits
-  SUM(dq.balance)                                   AS v2_daily_net,
-  -- daily V3 net stake/unstake
-  COALESCE(v3.daily_staked, 0)                      AS v3_daily_net,
-
-  -- cumulative sums
-  SUM(SUM(dq.balance))   OVER (ORDER BY dq.formatted_date) AS v2_cumulative,
-  SUM(COALESCE(v3.daily_staked, 0)) OVER (ORDER BY dq.formatted_date) AS v3_cumulative,
-
-  -- total AMP balance (V2 + V3)
-  SUM(SUM(dq.balance)) OVER (ORDER BY dq.formatted_date)
-    + SUM(COALESCE(v3.daily_staked, 0)) OVER (ORDER BY dq.formatted_date)
-    AS total_amp_balance,
-
-  -- price at each day
-  MAX(COALESCE(pq.price, 0))                       AS price_at_time,
-
-  -- total USD value of AMP
-  (
-    SUM(SUM(dq.balance)) OVER (ORDER BY dq.formatted_date)
-    + SUM(COALESCE(v3.daily_staked, 0)) OVER (ORDER BY dq.formatted_date)
-  ) * MAX(COALESCE(pq.price, 0))                     AS total_usd_value
-
-FROM deposit_query dq
-LEFT JOIN v3_staked      v3 ON dq.formatted_date = v3.day
-LEFT JOIN price_query    pq ON dq.formatted_date = pq.the_date
-
-GROUP BY dq.formatted_date, v3.daily_staked
-ORDER BY dq.formatted_date;
+  v3.day                              AS day,
+  v3.daily_staked                     AS v3_daily_net,
+  SUM(v3.daily_staked) OVER (
+    ORDER BY v3.day
+  )                                   AS v3_cumulative,
+  SUM(v3.daily_staked) OVER (
+    ORDER BY v3.day
+  )                                   AS total_amp_balance,
+  COALESCE(pq.price, 0)               AS price_at_time,
+  SUM(v3.daily_staked) OVER (
+    ORDER BY v3.day
+  ) * COALESCE(pq.price, 0)           AS total_usd_value
+FROM v3_staked v3
+LEFT JOIN price_query pq
+  ON v3.day = pq.the_date
+ORDER BY v3.day

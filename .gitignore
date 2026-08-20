@@ -2,3 +2,4 @@ _examples/
 .agents/
 .claude/
 skills-lock.json
+.env

@@ -1,0 +1,579 @@
+{
+  "source": "https://api.flexa.co/collateral_pools",
+  "fetched_at": "2026-08-20",
+  "vault": "0x5d2725fdE4d7Aa3388DA4519ac0449Cc031d675f",
+  "amp_token": "0xfF20817765cB7f73d4bde2e66e067E58D11095C2",
+  "pools": [
+    {
+      "name": "Avalanche",
+      "address": "0xc163c2cC35e32350Aa92DEC2b53b68950942d72F",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_35gjF264wgcPPRm9CcmpW",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/avalanche.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Base",
+      "address": "0xA52125ced25602203BCeF6E78E865571306CaB2A",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_CjrwRcm7qmpjGgf3cJHh4",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/base.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Bitcoin",
+      "address": "0xdB07414039F5e1618E3eCC8019C1C1ecb4b4C06A",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_w4J389JRJh6xhfcC46qjq",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/bitcoin.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Bitcoin Cash",
+      "address": "0x59e772F12938063bCa8A2B978791eBe225f5Bc3c",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_6CX58xFRVRJcr5Xj9c4q5",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/bitcoin-cash.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Burner",
+      "address": "0xB8706F2dd1Ce8A4328D254cF14271e0fbB5E268A",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "burner",
+      "entity_type": "app",
+      "icon_url": "https://flexa.media/apps/burner.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Cardano",
+      "address": "0x57F6f249DB02083362D43E2D02dD791068Df30C6",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_RChV9wQVH7j8vcx7rpC55",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/cardano.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Celo",
+      "address": "0x80E58Fe28F53CCbaD1c295ebAA6A8c13241D034b",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_Fmv2Xwg9XCWC8G8MgcXgW",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/celo.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Dogecoin",
+      "address": "0xa7f2B6aF8c536897f246B1EB62654cb9c886FA47",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_m4m4rvf8QR4Q5vfhrQqH4",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/dogecoin.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Ethereum",
+      "address": "0x9477dA44A61ceBCDD0383CD00Bf18A859FEb75b0",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_CHW9P5Qxgj5gMVx32wj85",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/ethereum.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Lightning",
+      "address": "0xd0415cf4558A0dBEE8242498D25284476bE3c8f2",
+      "chain": "eip155:1",
+      "boosted": true,
+      "entity_id": "netwrk_VWR6j4xcccC8cxpjfCfVv",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/lightning.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Litecoin",
+      "address": "0x84706656fabFE15b2b77F292A656dD024607d332",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_v4Cj4CGQ9QqvRcXpm64v7",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/litecoin.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Nexus Wallet",
+      "address": "0x1693DeCE45b908Ed25244E8b7FFdE4760cB9Ca24",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "nexus-wallet",
+      "entity_type": "app",
+      "icon_url": "https://flexa.media/apps/nexus-wallet.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Nighthawk Wallet",
+      "address": "0xD57E335457b6f5d09ac69248230005a02F9B60CF",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "nighthawk-wallet",
+      "entity_type": "app",
+      "icon_url": "https://flexa.media/apps/nighthawk-wallet.png",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Polygon",
+      "address": "0x1e73f41454D9806f0462Eb6C9FD2A3754cEE7Fc4",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_W4vJvf35xpQjhh5x5QHqF",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/polygon.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Solana",
+      "address": "0xE932d1a226E962D820a33363DF32FcC95D2559D2",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_8VCM8wR45JfjRH3mFcMV2",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/solana.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "SPEDN",
+      "address": "0xFF1D02F09A9C55cEFd37f57715FEe7E88278d34e",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "spedn",
+      "entity_type": "app",
+      "icon_url": "https://flexa.media/apps/spedn.png",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Tezos",
+      "address": "0xCD234A11B26F42B391C2838Beb3DA3Bb3A590B66",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_HF6C6wXqQCc7cFRX5vQf6",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/tezos.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "World Chain",
+      "address": "0x603f0200e863784e03cD262bB5266d819DD0eAf0",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_GhCqf4rrHxXvh6XXcm89g",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/world-chain.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Zcash",
+      "address": "0xcfBbAE9DCE9a207BaB01E1589e345D3Edc65D842",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "netwrk_gQ5W6qFpJgxjFVvHhHh8p",
+      "entity_type": "network",
+      "icon_url": "https://flexa.media/networks/zcash.svg",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": "Zodl",
+      "address": "0xd80370093a305bbDA27B821bb6c6347989Bf709b",
+      "chain": "eip155:1",
+      "boosted": false,
+      "entity_id": "zodl",
+      "entity_type": "app",
+      "icon_url": "https://flexa.media/apps/zodl.png",
+      "status": "active",
+      "governance_batch": 1
+    },
+    {
+      "name": null,
+      "address": "0x493A61d99Bae1eB7a67fBc2D3312987f033bb04b",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xdB050cb5869A29f7bA715A042fE9B6F420752DE4",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x6ad9105AcAB6900a4248A97768351735cBBbb404",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x60C27863b59202fDA0a95E97aBEd2a2fB76CA256",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x4E12de31Df05A714fBF04aE66c292a9B7B203DbD",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xf22D110e9Cf566E136c202Fddf588fF69616Eb0D",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xFF13D2970c6e0D93B5ba96b955DaD95676a892a0",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xc0279f25db775a1F7eE37536234A6D90a7410ea9",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x239f4114Ef98779475Ed45d95d6D85353Da7c5bb",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xD2C6B388b9A8d11e621b16549a8a7016f13d066B",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xf87Eae04040a0288e0073E0B595d50179e4Bc71B",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xa208Fdcd72B33B77283Dccb100F5Ff123D4c5555",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xDa0745C70013Be426feebB45CA9e8AcE26bE7a74",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xBC0e40Ed6fAF16882dB38449b4aA1c2f8F566a8A",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xBc18Dff64398A22BC45EbB279Cc989f7CB5Ef021",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x89f81a0a39175A6ABcFD73ae401e0762A858B65e",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x7A13dc434198af26c8F7454F2A3c87846864b84b",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x336940e800D3E5b430a7eB46b9137f3ddDD8d204",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x15B493ebDf0ac33CD25bD79cA4bD28B210796dB9",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x0dB2a48bf681E9A15870d709ABB708F5729399E6",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x25fd5E1dC7474818f11aC552c2c3E69b61189cE2",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x4f6Db94c8671053E5De0ed1e561de21C36f566Ca",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x05BE319D9406EC78E7e6d8F3D1c229a10F489525",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xd7521479098ea48fd5b53f09FA99437d62Aa09c1",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x9Dde28F1e832b739c7160EBC0651a65a9e7801Ad",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xa0Ede7538E72E88422DC8F2C6292E0B25a713eAB",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xCF5dD8B2aF399D93ab6f6F7cC50eaDEc325859dB",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x23c2a0d9eD809d45A11091d31f9BcEDC51b81edA",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x3196e35221f9F021e5BE0C67625263268C90b66E",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xBb3cAFEFc1bcB614DD1C88DB58FA882a620c4972",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xDdf0B8a997f5c0893d83CFa21239E12c433Ca4eA",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x15BB20631E4f7bd2E3Ad27FE85C6B760A0B7170E",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xa44f5C73eB2616961d29CDf20516bCA56847f854",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x19e338d9d665a20e1B521A6dC33323ed963a77Fb",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xf492813d8818F43CbC73d085fD07e0267e9388aE",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xeEDB6C2C4C6bE57a71253f30CAdB1E218916B4d0",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xEfe7822aef9C133D4756E9847237750ACDE1cC64",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x9De9C576E937c61AcCA1da35ddd060f11805C130",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x9977eCeC71F3C7967Af8Dc17A7d0E1b4c4e61388",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x9FA12C5a56Ab54aC9a5D99cC9246d3cBfEC23972",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xa9c790a48a494Ad73c2eC5fcCac5Fc1299e23666",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xbE3f8137175Ac4929f77aEf465eDDBb8cfBFDeb5",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x193A6b3b08BEd02Af769837c8821F453e1050526",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x50fb7BD4850D91382BB8696d322967eB4127f30C",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x20C95fed0f57FF741c4A60436dCb2303309cd086",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x3de0d72d932A4F06094C07c4e112bbA33bF93C1E",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0xaa49e707a0F4AEEa9ed2c05a6B42E4D95817De1A",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x221117e330C3d5aa6899232Aea165055c211209B",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x1B3AB2Ea1BB5aE2cFAc86578467E68287e02E310",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    },
+    {
+      "name": null,
+      "address": "0x7613786B87BB51723741cAB88F8409698Ab50c70",
+      "chain": "eip155:1",
+      "status": "unused",
+      "governance_batch": 2
+    }
+  ],
+  "notes": "status 'active': pool is live and listed by the Flexa API. status 'unused': approved as a collateral pool in Flexa governance (batch 2 of CollateralizableContractApprovalUpdated updates) but not listed by the API and holding no collateral."
+}

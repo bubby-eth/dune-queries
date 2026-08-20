@@ -112,7 +112,8 @@ SELECT
   n.net_tokens,
   n.net_tokens * p.price                            AS usd_value,
   n.deposits,
-  100.0 * n.net_tokens / SUM(n.net_tokens) OVER ()  AS pct
+  -- fraction of total (0-1): Dune's "%" column format multiplies by 100
+  n.net_tokens / SUM(n.net_tokens) OVER ()          AS pct
 FROM net_tokens_by_pool n
 CROSS JOIN price_query p
 ORDER BY usd_value DESC;

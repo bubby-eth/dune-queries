@@ -1,3 +1,7 @@
+-- Flexa Capacity V3 Summary
+-- Dune query 4675019: https://dune.com/queries/4675019
+-- From dashboard: https://dune.com/ampdotxyz/amp-token
+
 -- Flexa Capacity v3 totals: reserved collateral across all pools, in AMP and USD.
 --
 -- Pool AMP is custodied by the Anvil CollateralVault

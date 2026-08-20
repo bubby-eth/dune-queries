@@ -1,3 +1,7 @@
+-- 💎 Top Amp Holders 💎
+-- Dune query 464401: https://dune.com/queries/464401
+-- From dashboard: https://dune.com/ampdotxyz/amp-token
+
 WITH
   transfers AS (
     SELECT
@@ -19,7 +23,7 @@ WITH
     WHERE tr.contract_address = 0xff20817765cb7f73d4bde2e66e067e58d11095c2
   ),
 
-  -- Pre-aggregate to shrink downstream joins
+  -- Pre-aggregate by address
   addr_sums AS (
     SELECT address, SUM(amount) AS amount_sum
     FROM transfers
@@ -95,7 +99,13 @@ WITH
   )
 
 SELECT
-  concat(substr(s.address, 1, 6), '...', substr(s.address, length(s.address) - 3, 4)) AS address,
+  -- Short form: 0x + first 4 hex + ... + last 4 hex
+  concat(
+    '0x',
+    substr(lower(to_hex(s.address)), 1, 4),
+    '...',
+    substr(lower(to_hex(s.address)), length(lower(to_hex(s.address))) - 3, 4)
+  ) AS address,
   s.amount_sum / 1e18 AS balance,
   (s.amount_sum * lp.price) / 1e18 AS value,
   COALESCE(al.label, cex.distinct_name, '🐋') AS label
@@ -106,7 +116,12 @@ LEFT JOIN cex.addresses cex
 LEFT JOIN address_labels al
   ON al.address = s.address
 GROUP BY
-  concat(substr(s.address, 1, 6), '...', substr(s.address, length(s.address) - 3, 4)),
+  concat(
+    '0x',
+    substr(lower(to_hex(s.address)), 1, 4),
+    '...',
+    substr(lower(to_hex(s.address)), length(lower(to_hex(s.address))) - 3, 4)
+  ),
   COALESCE(al.label, cex.distinct_name, '🐋'),
   s.amount_sum,
   lp.price

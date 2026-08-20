@@ -1,3 +1,7 @@
+-- Spending Capacity on Flexa V3
+-- Dune query 478869: https://dune.com/queries/478869
+-- From dashboard: https://dune.com/ampdotxyz/amp-token
+
 -- Daily net flows and cumulative reserved AMP across all Flexa Capacity v3 pools,
 -- with USD value at each day's average AMP price.
 --

@@ -1,3 +1,7 @@
+-- Staking Pools V2
+-- Dune query 500448: https://dune.com/queries/500448
+-- From dashboard: https://dune.com/ampdotxyz/amp-token
+
 WITH
   capacity_query AS (
     SELECT

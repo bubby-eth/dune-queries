@@ -1,3 +1,7 @@
+-- Flexa Capacity V2 Pool Share
+-- Dune query 508888: https://dune.com/queries/508888
+-- From dashboard: https://dune.com/ampdotxyz/amp-token
+
 WITH
     capacity_query AS (
         SELECT

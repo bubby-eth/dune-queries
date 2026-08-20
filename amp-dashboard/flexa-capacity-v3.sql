@@ -1,3 +1,7 @@
+-- Flexa Capacity V3
+-- Dune query 4673598: https://dune.com/queries/4673598
+-- From dashboard: https://dune.com/ampdotxyz/amp-token
+
 -- Flexa Capacity v3 pool summary: net tokens (reserved collateral), USD value,
 -- deposit count, and share of total.
 --

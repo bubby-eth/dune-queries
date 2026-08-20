@@ -1,3 +1,7 @@
+-- Amp Holders & Stakers
+-- Dune query 2262211: https://dune.com/queries/2262211
+-- From dashboard: https://dune.com/ampdotxyz/amp-token
+
 WITH
   holder_data AS (
     SELECT

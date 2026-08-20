@@ -1,3 +1,7 @@
+-- Amp
+-- Dune query 375548: https://dune.com/queries/375548
+-- From dashboard: https://dune.com/ampdotxyz/amp-token
+
 WITH
   ----------------------------------------------------------------
   -- 1) Reusable list of all V3 pool/router addresses

@@ -1,3 +1,7 @@
+-- Flexa Capacity V3 Pool Share
+-- Dune query 4675161: https://dune.com/queries/4675161
+-- From dashboard: https://dune.com/ampdotxyz/amp-token
+
 -- Flexa Capacity v3 weekly reserved-collateral history per pool.
 -- Output: one row per pool x week with the week's net flow, the running reserved
 -- balance, and its USD value (at the current AMP price).

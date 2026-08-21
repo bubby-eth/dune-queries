@@ -2,7 +2,8 @@
 -- Dune query 8396295: https://dune.com/queries/8396295
 -- From dashboard: https://dune.com/ampdotxyz/amp-token
 --
--- Weekly AMP flows between tracked centralized exchanges and everyone else.
+-- Weekly AMP flows between tracked centralized exchanges and everyone else,
+-- year to date.
 -- withdrawals = AMP leaving exchanges (positive), deposits = AMP arriving on
 -- exchanges (emitted negative for diverging columns), netflow = withdrawals
 -- minus deposits (positive = net supply leaving exchanges).
@@ -26,6 +27,7 @@ FROM erc20_ethereum.evt_Transfer tr
 LEFT JOIN cex_eth ct ON ct.address = tr."to"
 LEFT JOIN cex_eth cf ON cf.address = tr."from"
 WHERE tr.contract_address = 0xff20817765cb7f73d4bde2e66e067e58d11095c2
+  AND tr.evt_block_time >= DATE_TRUNC('year', NOW())
   AND (ct.address IS NOT NULL OR cf.address IS NOT NULL)
 GROUP BY 1
 ORDER BY 1

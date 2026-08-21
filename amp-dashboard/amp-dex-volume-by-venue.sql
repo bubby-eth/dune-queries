@@ -2,9 +2,9 @@
 -- Dune query 8396297: https://dune.com/queries/8396297
 -- From dashboard: https://dune.com/ampdotxyz/amp-token
 --
--- Weekly AMP trading volume in USD split by venue: Uniswap V2/V3/V4, Sushi,
--- and everything else folded into Other (fixed 5-series cap). Built on
--- dex.trades, so new venues land in Other automatically.
+-- Weekly AMP trading volume in USD split by venue, year to date: Uniswap
+-- V2/V3/V4, Sushi, and everything else folded into Other (fixed 5-series
+-- cap). Built on dex.trades, so new venues land in Other automatically.
 -- Venue colors match the DEX liquidity pie.
 SELECT
   CAST(DATE_TRUNC('week', block_time) AS DATE) AS week,
@@ -19,6 +19,7 @@ SELECT
   COUNT(*)                                     AS trades
 FROM dex.trades
 WHERE blockchain = 'ethereum'
+  AND block_time >= DATE_TRUNC('year', NOW())
   AND (   token_bought_address = 0xfF20817765cB7f73d4bde2e66e067E58D11095C2
        OR token_sold_address   = 0xfF20817765cB7f73d4bde2e66e067E58D11095C2)
 GROUP BY 1, 2

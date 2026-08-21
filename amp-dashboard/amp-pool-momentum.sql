@@ -6,6 +6,12 @@
 -- alongside each pool's current reserved balance and the change as a fraction
 -- of where the pool stood 30 days ago (0-1; Dune's % format multiplies by 100).
 -- Derived from the exact CollateralVault event reconstruction.
+--
+-- NOTE: Flexa boosts one pool's APY each month, so large swings usually
+-- reflect stakers rotating toward the boosted pool rather than collateral
+-- entering or leaving Flexa (e.g. Aug 2026: Solana -88.6% / boosted Lightning
+-- +75%, near 1:1). See the Amp Boost Migration query for the rotation vs
+-- new-capital decomposition.
 WITH
   pool_map (addr, pool_name) AS (
     VALUES

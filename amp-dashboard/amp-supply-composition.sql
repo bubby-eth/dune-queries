@@ -3,13 +3,13 @@
 -- From dashboard: https://dune.com/ampdotxyz/amp-token
 --
 -- Where the AMP supply sits, daily: staked in Flexa Capacity v3 (reserved
--- collateral), held on tracked centralized exchanges, or anywhere else.
+-- collateral), staked in Flexa Capacity v2 (Collateral Manager balance),
+-- held on tracked centralized exchanges, or anywhere else.
 -- Long format (day, category, amp) for a stacked/100% area chart.
 --
 -- Caveats:
 --   * "On exchanges" covers only addresses in Dune's cex.addresses list.
---   * "Other" includes the v2 Collateral Manager, DEX pools, and the v3
---     vault's unreserved exit liquidity.
+--   * "Other" includes DEX pools and the v3 vault's unreserved exit liquidity.
 -- Staked series uses the exact CollateralVault event reconstruction (see
 -- flexa-capacity-v3.sql); terminated reservations get a correction delta at
 -- termination time so history nets to zero.
@@ -51,6 +51,21 @@ WITH
     LEFT JOIN cex_eth cf ON cf.address = tr."from"
     WHERE tr.contract_address = 0xff20817765cb7f73d4bde2e66e067e58d11095c2
       AND (ct.address IS NOT NULL OR cf.address IS NOT NULL)
+    GROUP BY 1
+  ),
+
+  -- Flexa Capacity v2: net AMP held by the Collateral Manager, daily change
+  -- (self-transfers contribute +v and -v and cancel)
+  v2_deltas AS (
+    SELECT DATE_TRUNC('day', evt_block_time) AS day,
+           SUM(  (CASE WHEN "to"   = 0x706d7f8b3445d8dfc790c524e3990ef014e7c578
+                       THEN CAST(value AS int256) ELSE CAST(0 AS int256) END)
+               - (CASE WHEN "from" = 0x706d7f8b3445d8dfc790c524e3990ef014e7c578
+                       THEN CAST(value AS int256) ELSE CAST(0 AS int256) END)) AS delta
+    FROM erc20_ethereum.evt_Transfer
+    WHERE contract_address = 0xff20817765cb7f73d4bde2e66e067e58d11095c2
+      AND (   "to"   = 0x706d7f8b3445d8dfc790c524e3990ef014e7c578
+           OR "from" = 0x706d7f8b3445d8dfc790c524e3990ef014e7c578)
     GROUP BY 1
   ),
 
@@ -136,11 +151,13 @@ WITH
       d.day,
       SUM(COALESCE(s.delta, CAST(0 AS int256))) OVER (ORDER BY d.day) / 1e18 AS supply,
       SUM(COALESCE(c.delta, CAST(0 AS int256))) OVER (ORDER BY d.day) / 1e18 AS on_cex,
-      SUM(COALESCE(v.delta, CAST(0 AS int256))) OVER (ORDER BY d.day) / 1e18 AS staked
+      SUM(COALESCE(v.delta, CAST(0 AS int256))) OVER (ORDER BY d.day) / 1e18 AS staked,
+      SUM(COALESCE(m.delta, CAST(0 AS int256))) OVER (ORDER BY d.day) / 1e18 AS staked_v2
     FROM days d
     LEFT JOIN supply_deltas s ON s.day = d.day
     LEFT JOIN cex_deltas    c ON c.day = d.day
     LEFT JOIN staked_deltas v ON v.day = d.day
+    LEFT JOIN v2_deltas     m ON m.day = d.day
   )
 
 SELECT day, category, amp
@@ -148,8 +165,9 @@ FROM levels
 CROSS JOIN UNNEST(
   ARRAY[
     ROW('Staked (Flexa v3)', staked),
+    ROW('Staked (Flexa v2)', staked_v2),
     ROW('On exchanges',      on_cex),
-    ROW('Other',             supply - on_cex - staked)
+    ROW('Other',             supply - on_cex - staked - staked_v2)
   ]
 ) AS t(category, amp)
 ORDER BY day, category

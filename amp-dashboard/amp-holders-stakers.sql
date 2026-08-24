@@ -8,7 +8,9 @@
 --     if earlier / no transfer exists for the address), linked to its tx on Etherscan
 --   * last_activity: date of latest AMP transfer in either direction or v3
 --     stake/unstake event, linked to its tx on Etherscan and suffixed with the
---     activity kind: (in) / (out) / (stake) / (unstake)
+--     activity kind: (in) / (out) / (stake) / (unstake). Transfers to/from the
+--     v2 Collateral Manager count as stake/unstake; on a same-block tie the v3
+--     event kind wins over its own transfer leg.
 --   * balance: net of all AMP ERC-20 transfers (single scan, +to / -from)
 --   * v2 staked: net AMP transferred to/from the v2 Collateral Manager
 --   * v3 staked: pool-contract events from raw logs (pools are not decoded on Dune):
@@ -21,14 +23,20 @@
 WITH
   -- every AMP transfer, emitted once per side (single table scan)
   transfer_flows AS (
-    SELECT f.holder, f.amount, tr.evt_block_time AS block_time, tr.evt_tx_hash AS tx_hash
+    -- kind: transfers to/from the v2 Collateral Manager are v2 stakes/unstakes,
+    -- everything else is a plain out/in
+    SELECT f.holder, f.amount, f.kind, tr.evt_block_time AS block_time, tr.evt_tx_hash AS tx_hash
     FROM erc20_ethereum.evt_Transfer tr
     CROSS JOIN UNNEST(
       ARRAY[
-        ROW(tr."from", -CAST(tr.value AS int256)),
-        ROW(tr."to",    CAST(tr.value AS int256))
+        ROW(tr."from", -CAST(tr.value AS int256),
+            CASE WHEN tr."to" = 0x706d7f8b3445d8dfc790c524e3990ef014e7c578
+                 THEN 'stake' ELSE 'out' END),
+        ROW(tr."to",    CAST(tr.value AS int256),
+            CASE WHEN tr."from" = 0x706d7f8b3445d8dfc790c524e3990ef014e7c578
+                 THEN 'unstake' ELSE 'in' END)
       ]
-    ) AS f(holder, amount)
+    ) AS f(holder, amount, kind)
     WHERE tr.contract_address = 0xff20817765cb7f73d4bde2e66e067e58d11095c2
   ),
 
@@ -50,10 +58,7 @@ WITH
              CASE WHEN amount > CAST(0 AS int256) THEN block_time END)      AS first_received_tx,
       MAX(block_time)                                                       AS last_transfer_at,
       MAX_BY(tx_hash, block_time)                                           AS last_transfer_tx,
-      MAX_BY(
-        CASE WHEN amount > CAST(0 AS int256) THEN 'in' ELSE 'out' END,
-        block_time
-      )                                                                     AS last_transfer_kind
+      MAX_BY(kind, block_time)                                              AS last_transfer_kind
     FROM transfer_flows
     GROUP BY 1
   ),
@@ -183,17 +188,20 @@ WITH
         COALESCE(td.last_transfer_at, s.last_event_at),
         COALESCE(s.last_event_at, td.last_transfer_at)
       )                                                   AS last_activity_at,
+      -- on a timestamp tie the v3 event wins: a v3 stake tx emits both the
+      -- outgoing transfer and CollateralStaked in the same block, and the
+      -- stake is the meaningful action
       CASE
-        WHEN td.last_transfer_at IS NOT NULL
-         AND (s.last_event_at IS NULL OR td.last_transfer_at >= s.last_event_at)
-        THEN td.last_transfer_tx
-        ELSE s.last_event_tx
+        WHEN s.last_event_at IS NOT NULL
+         AND (td.last_transfer_at IS NULL OR s.last_event_at >= td.last_transfer_at)
+        THEN s.last_event_tx
+        ELSE td.last_transfer_tx
       END                                                 AS last_activity_tx,
       CASE
-        WHEN td.last_transfer_at IS NOT NULL
-         AND (s.last_event_at IS NULL OR td.last_transfer_at >= s.last_event_at)
-        THEN td.last_transfer_kind
-        ELSE s.last_event_kind
+        WHEN s.last_event_at IS NOT NULL
+         AND (td.last_transfer_at IS NULL OR s.last_event_at >= td.last_transfer_at)
+        THEN s.last_event_kind
+        ELSE td.last_transfer_kind
       END                                                 AS last_activity_kind
     FROM holders_grouped h
     FULL OUTER JOIN stakers_all_grouped s ON h.holder = s.holder

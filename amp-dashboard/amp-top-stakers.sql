@@ -4,6 +4,9 @@
 --
 -- Top 25 Flexa Capacity v3 staking accounts: staked AMP, share of all staked
 -- collateral (0-1 fraction), and first/latest staking activity.
+--   * staker: truncated address with Etherscan / DeBank profile links
+--   * first_stake / last_activity: dates linked to their tx on Etherscan;
+--     last_activity is suffixed with the event kind: (stake) / (unstake)
 -- Source: pool CollateralStaked / UnstakeInitiated events from raw logs;
 -- units convert 1:1 to AMP until a pool claim or reset (none to date).
 WITH
@@ -11,6 +14,11 @@ WITH
     SELECT
       varbinary_substring(topic1, 13, 20) AS account,
       block_time,
+      tx_hash,
+      CASE
+        WHEN topic0 = 0xa7b456599fe289da1e1af41ace1eaafeb22eb6daaf83cb8c545bb631963aa373
+        THEN 'stake' ELSE 'unstake'
+      END AS kind,
       CASE
         WHEN topic0 = 0xa7b456599fe289da1e1af41ace1eaafeb22eb6daaf83cb8c545bb631963aa373
         THEN varbinary_to_int256(varbinary_substring(data, 33, 32))
@@ -49,9 +57,12 @@ WITH
   per_account AS (
     SELECT
       account,
-      SUM(units) / 1e18   AS staked,
-      MIN(block_time)     AS first_activity,
-      MAX(block_time)     AS last_activity
+      SUM(units) / 1e18            AS staked,
+      MIN(block_time)              AS first_activity,
+      MIN_BY(tx_hash, block_time)  AS first_tx,
+      MAX(block_time)              AS last_activity,
+      MAX_BY(tx_hash, block_time)  AS last_tx,
+      MAX_BY(kind, block_time)     AS last_kind
     FROM events
     GROUP BY 1
     HAVING SUM(units) > CAST(0 AS int256)
@@ -59,12 +70,20 @@ WITH
 
 SELECT
   ROW_NUMBER() OVER (ORDER BY p.staked DESC) AS rank,
-  '<a href="https://debank.com/profile/' || CAST(p.account AS varchar) ||
-    '" target="_blank">' || CAST(p.account AS varchar) || '</a>' AS staker,
+  SUBSTR(CAST(p.account AS varchar), 1, 6) || '...' ||
+    SUBSTR(CAST(p.account AS varchar), 39) ||
+    ' | <a href="https://etherscan.io/address/' || CAST(p.account AS varchar) ||
+    '" target="_blank">Etherscan</a>' ||
+    ' | <a href="https://debank.com/profile/' || CAST(p.account AS varchar) ||
+    '" target="_blank">DeBank</a>' AS staker,
   p.staked                                  AS staked_amp,
   p.staked / SUM(p.staked) OVER ()          AS share_of_staked,
-  CAST(p.first_activity AS DATE)            AS first_stake,
-  CAST(p.last_activity AS DATE)             AS last_activity
+  '<a href="https://etherscan.io/tx/' || CAST(p.first_tx AS varchar) ||
+    '" target="_blank">' || CAST(CAST(p.first_activity AS date) AS varchar) ||
+    '</a>' AS first_stake,
+  '<a href="https://etherscan.io/tx/' || CAST(p.last_tx AS varchar) ||
+    '" target="_blank">' || CAST(CAST(p.last_activity AS date) AS varchar) ||
+    ' (' || p.last_kind || ')</a>' AS last_activity
 FROM per_account p
 ORDER BY p.staked DESC
 LIMIT 25

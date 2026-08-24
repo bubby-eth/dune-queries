@@ -1,8 +1,27 @@
 # Dune decoding submissions for Anvil
 
 Submit at https://dune.com/contracts/new (project name: `anvil`, chain: Ethereum).
-Already decoded, no action needed: Anvil token (`anvil_ethereum.anvil_*`) and
-CollateralVault (`anvil_ethereum.collateralvault_*`).
+Already decoded, no action needed: CollateralVault
+(`anvil_ethereum.collateralvault_*`).
+
+Status 2026-08-24: items 1-6 below were accepted — decoded tables exist for
+LetterOfCredit, TimeBasedCollateralPool, AnvilGovernor, AnvilTimelock, and the
+liquidators — but all had 0 rows (backfill pending) while raw logs show real
+activity. Recheck before rewriting raw-log queries; resubmit against the proxy
+addresses if still empty ~Sep 2026.
+
+## 0. Current ANVL token — HIGH priority (NEW)
+
+`anvil_ethereum.anvil_evt_*` covers only the PRE-migration token
+(0x2ca9242c1810029EFED539F1c60D68B63AD01BFc). ANVL migrated ~Oct 2025 to a new
+100B-supply token, and live governance verifiably uses the new one (recent
+VoteCast weights match its delegation records). The new token is completely
+undecoded — the raw-log parsing in anvl-top-delegates.sql and
+anvl-delegation-over-time.sql can be replaced once it decodes.
+
+    0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
+
+- Contract name: Anvil (standard ERC20Votes; ABI verified on Etherscan)
 
 ## 1. LetterOfCredit (proxy) — HIGH priority
 

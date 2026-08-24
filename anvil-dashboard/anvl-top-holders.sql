@@ -1,3 +1,6 @@
+-- Top ANVL Holders
+-- Dune query 3845009: https://dune.com/queries/3845009
+-- From dashboard: https://dune.com/anvil/anvil
 WITH
   transfers AS (
     SELECT

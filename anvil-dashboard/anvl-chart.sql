@@ -1,3 +1,6 @@
+-- ANVL Chart
+-- Dune query 3846010: https://dune.com/queries/3846010
+-- From dashboard: https://dune.com/anvil/anvil
 WITH trades AS (
   SELECT
     block_time AS date,

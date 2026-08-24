@@ -1,3 +1,8 @@
+-- ANVL Holders Over Time
+-- Dune query 3845760: https://dune.com/queries/3845760
+-- From dashboard: https://dune.com/anvil/anvil
+--
+-- Includes v1 and v2
 WITH
   -- Configure contract periods
   addresses AS (

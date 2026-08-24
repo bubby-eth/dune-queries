@@ -1,3 +1,6 @@
+-- ANVL Buys/Sells vs. Price
+-- Dune query 3854984: https://dune.com/queries/3854984
+-- From dashboard: https://dune.com/anvil/anvil
 WITH buys AS (
   SELECT
     DATE_TRUNC('day', block_time) AS date,

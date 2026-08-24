@@ -1,3 +1,6 @@
+-- ANVL Token Distribution
+-- Dune query 3845805: https://dune.com/queries/3845805
+-- From dashboard: https://dune.com/anvil/anvil
 -- Top holders + "All Others" for a given ERC-20
 WITH
   params AS (
@@ -15,7 +18,7 @@ WITH
     UNION ALL
 
     SELECT
-      tr."to"   AS addr,
+      tr."to" AS addr,
       CAST(tr.value AS INT256) AS amt
     FROM erc20_ethereum.evt_Transfer tr
     JOIN params p ON tr.contract_address = p.token
@@ -30,17 +33,15 @@ WITH
     LEFT JOIN tokens.erc20 t ON t.contract_address = p.token
   ),
 
-  -- Aggregate balances (native units -> human units using decimals)
+  -- Aggregate balances (native units → human units using decimals)
   balances AS (
     SELECT
-      -- display like 0x1234...cdef
       CONCAT(
-        '0x',
-        SUBSTRING(hex(lower(addr)), 1, 4),
+        SUBSTRING(CAST(addr AS varchar), 1, 6),
         '...',
-        SUBSTRING(hex(lower(addr)), LENGTH(hex(lower(addr))) - 3, 4)
+        SUBSTRING(CAST(addr AS varchar), 39, 42)
       ) AS address,
-      SUM(amt) / CAST(power(10, (SELECT decimals FROM token_meta)) AS DOUBLE) AS balance
+      SUM(amt) / CAST(POWER(10, (SELECT decimals FROM token_meta)) AS DOUBLE) AS balance
     FROM transfers
     GROUP BY 1
   ),
@@ -60,7 +61,7 @@ UNION ALL
 
 SELECT
   '🌎 All Others' AS address,
-  SUM(balance)    AS balance
+  SUM(balance) AS balance
 FROM balances
 WHERE address NOT IN (SELECT address FROM top10)
   AND balance > 0;

@@ -1,3 +1,6 @@
+-- ANVL
+-- Dune query 3839828: https://dune.com/queries/3839828
+-- From dashboard: https://dune.com/anvil/anvil
 -- ============ Params ============
 WITH
 params AS (

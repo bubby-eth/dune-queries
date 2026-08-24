@@ -1,3 +1,6 @@
+-- Largest ANVL Buys
+-- Dune query 3865994: https://dune.com/queries/3865994
+-- From dashboard: https://dune.com/anvil/anvil
 SELECT
     block_time,
     CONCAT(

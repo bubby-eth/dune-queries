@@ -1,3 +1,6 @@
+-- Uniswap: ANVL Liquidity
+-- Dune query 3846766: https://dune.com/queries/3846766
+-- From dashboard: https://dune.com/anvil/anvil
 WITH
 -- Restrict analysis to a specific pool
 pools AS (
@@ -37,7 +40,7 @@ price_latest AS (
     AND d.token_bought_amount IS NOT NULL AND d.token_bought_amount <> 0
 ),
 
--- Carry ALL columns from tvl_daily, add period and computed tvl with token1 USD fallback
+-- Carry ALL needed columns, add period and computed tvl with token1 USD fallback
 tvl_per_pool AS (
   SELECT
     d.block_date AS period,
@@ -53,8 +56,7 @@ tvl_per_pool AS (
     d.token0_balance,
     d.token1_balance,
     d.token0_balance_usd,
-    d.token1_balance_usd,
-    -- replace token1_balance_usd if missing with token1_balance * latest price
+    -- override token1_balance_usd if missing with token1_balance * latest price
     COALESCE(
       NULLIF(d.token1_balance_usd, 0),
       d.token1_balance * COALESCE(pl1.price_usd, 0)

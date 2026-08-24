@@ -7,7 +7,8 @@
 --   * first_received: date of first incoming AMP transfer (or first v3 stake event
 --     if earlier / no transfer exists for the address), linked to its tx on Etherscan
 --   * last_activity: date of latest AMP transfer in either direction or v3
---     stake/unstake event, linked to its tx on Etherscan
+--     stake/unstake event, linked to its tx on Etherscan and suffixed with the
+--     activity kind: (in) / (out) / (stake) / (unstake)
 --   * balance: net of all AMP ERC-20 transfers (single scan, +to / -from)
 --   * v2 staked: net AMP transferred to/from the v2 Collateral Manager
 --   * v3 staked: pool-contract events from raw logs (pools are not decoded on Dune):
@@ -48,7 +49,11 @@ WITH
       MIN_BY(tx_hash,
              CASE WHEN amount > CAST(0 AS int256) THEN block_time END)      AS first_received_tx,
       MAX(block_time)                                                       AS last_transfer_at,
-      MAX_BY(tx_hash, block_time)                                           AS last_transfer_tx
+      MAX_BY(tx_hash, block_time)                                           AS last_transfer_tx,
+      MAX_BY(
+        CASE WHEN amount > CAST(0 AS int256) THEN 'in' ELSE 'out' END,
+        block_time
+      )                                                                     AS last_transfer_kind
     FROM transfer_flows
     GROUP BY 1
   ),
@@ -90,7 +95,14 @@ WITH
       MIN(block_time)             AS first_event_at,
       MIN_BY(tx_hash, block_time) AS first_event_tx,
       MAX(block_time)             AS last_event_at,
-      MAX_BY(tx_hash, block_time) AS last_event_tx
+      MAX_BY(tx_hash, block_time) AS last_event_tx,
+      MAX_BY(
+        CASE
+          WHEN topic0 = 0xa7b456599fe289da1e1af41ace1eaafeb22eb6daaf83cb8c545bb631963aa373
+          THEN 'stake' ELSE 'unstake'
+        END,
+        block_time
+      )                           AS last_event_kind
     FROM ethereum.logs
     WHERE contract_address IN (
         0xd0415cf4558A0dBEE8242498D25284476bE3c8f2,
@@ -131,16 +143,19 @@ WITH
       MIN(first_event_at)                      AS first_event_at,
       MIN_BY(first_event_tx, first_event_at)   AS first_event_tx,
       MAX(last_event_at)                       AS last_event_at,
-      MAX_BY(last_event_tx, last_event_at)     AS last_event_tx
+      MAX_BY(last_event_tx, last_event_at)     AS last_event_tx,
+      MAX_BY(last_event_kind, last_event_at)   AS last_event_kind
     FROM (
       SELECT holder, staked,
              CAST(NULL AS timestamp) AS first_event_at,
              CAST(NULL AS varbinary) AS first_event_tx,
              CAST(NULL AS timestamp) AS last_event_at,
-             CAST(NULL AS varbinary) AS last_event_tx
+             CAST(NULL AS varbinary) AS last_event_tx,
+             CAST(NULL AS varchar)   AS last_event_kind
       FROM stakers_v2_grouped
       UNION ALL
-      SELECT holder, staked, first_event_at, first_event_tx, last_event_at, last_event_tx
+      SELECT holder, staked, first_event_at, first_event_tx, last_event_at, last_event_tx,
+             last_event_kind
       FROM stakers_v3_grouped
     )
     GROUP BY 1
@@ -173,7 +188,13 @@ WITH
          AND (s.last_event_at IS NULL OR td.last_transfer_at >= s.last_event_at)
         THEN td.last_transfer_tx
         ELSE s.last_event_tx
-      END                                                 AS last_activity_tx
+      END                                                 AS last_activity_tx,
+      CASE
+        WHEN td.last_transfer_at IS NOT NULL
+         AND (s.last_event_at IS NULL OR td.last_transfer_at >= s.last_event_at)
+        THEN td.last_transfer_kind
+        ELSE s.last_event_kind
+      END                                                 AS last_activity_kind
     FROM holders_grouped h
     FULL OUTER JOIN stakers_all_grouped s ON h.holder = s.holder
     LEFT JOIN transfer_dates td ON td.holder = COALESCE(h.holder, s.holder)
@@ -298,8 +319,12 @@ WITH
 
 SELECT
   ROW_NUMBER() OVER (ORDER BY tc.total DESC) AS "rank",
-  '<a href="https://debank.com/profile/' || CAST(tc.holder AS varchar) ||
-    '" target="_blank">' || CAST(tc.holder AS varchar) || '</a>' AS holder,
+  SUBSTR(CAST(tc.holder AS varchar), 1, 6) || '...' ||
+    SUBSTR(CAST(tc.holder AS varchar), 39) ||
+    ' | <a href="https://etherscan.io/address/' || CAST(tc.holder AS varchar) ||
+    '" target="_blank">Etherscan</a>' ||
+    ' | <a href="https://debank.com/profile/' || CAST(tc.holder AS varchar) ||
+    '" target="_blank">DeBank</a>' AS holder,
   tc.total,
   tc.balance,
   tc.staked,
@@ -309,7 +334,7 @@ SELECT
     '</a>' AS first_received,
   '<a href="https://etherscan.io/tx/' || CAST(tc.last_activity_tx AS varchar) ||
     '" target="_blank">' || CAST(CAST(tc.last_activity_at AS date) AS varchar) ||
-    '</a>' AS last_activity,
+    ' (' || tc.last_activity_kind || ')</a>' AS last_activity,
   COALESCE(
     lm.label,
     cex.distinct_name,

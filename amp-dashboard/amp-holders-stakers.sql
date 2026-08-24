@@ -3,7 +3,11 @@
 -- From dashboard: https://dune.com/ampdotxyz/amp-token
 --
 -- One row per address: AMP wallet balance, staked amount (Flexa Capacity v2 + v3),
--- combined total, USD value, and a label.
+-- combined total, USD value, first-received / last-activity dates, and a label.
+--   * first_received: date of first incoming AMP transfer (or first v3 stake event
+--     if earlier / no transfer exists for the address), linked to its tx on Etherscan
+--   * last_activity: date of latest AMP transfer in either direction or v3
+--     stake/unstake event, linked to its tx on Etherscan
 --   * balance: net of all AMP ERC-20 transfers (single scan, +to / -from)
 --   * v2 staked: net AMP transferred to/from the v2 Collateral Manager
 --   * v3 staked: pool-contract events from raw logs (pools are not decoded on Dune):
@@ -16,7 +20,7 @@
 WITH
   -- every AMP transfer, emitted once per side (single table scan)
   transfer_flows AS (
-    SELECT f.holder, f.amount
+    SELECT f.holder, f.amount, tr.evt_block_time AS block_time, tr.evt_tx_hash AS tx_hash
     FROM erc20_ethereum.evt_Transfer tr
     CROSS JOIN UNNEST(
       ARRAY[
@@ -32,6 +36,21 @@ WITH
     FROM transfer_flows
     GROUP BY 1
     HAVING SUM(amount) > CAST(0 AS int256)
+  ),
+
+  -- first incoming AMP transfer and latest AMP transfer (either direction) per
+  -- address, each with its transaction hash (MIN_BY/MAX_BY ignore NULL keys, so
+  -- the outgoing-only CASE rows don't affect the "first received" pick)
+  transfer_dates AS (
+    SELECT
+      holder,
+      MIN(CASE WHEN amount > CAST(0 AS int256) THEN block_time END)         AS first_received_at,
+      MIN_BY(tx_hash,
+             CASE WHEN amount > CAST(0 AS int256) THEN block_time END)      AS first_received_tx,
+      MAX(block_time)                                                       AS last_transfer_at,
+      MAX_BY(tx_hash, block_time)                                           AS last_transfer_tx
+    FROM transfer_flows
+    GROUP BY 1
   ),
 
   -- Flexa Capacity v2: net AMP moved into the Collateral Manager, per staker.
@@ -67,7 +86,11 @@ WITH
           THEN varbinary_to_int256(varbinary_substring(data, 33, 32))  -- poolUnitsIssued
           ELSE -varbinary_to_int256(varbinary_substring(data, 1, 32))  -- unitsToUnstake
         END
-      ) / 1e18 AS staked
+      ) / 1e18 AS staked,
+      MIN(block_time)             AS first_event_at,
+      MIN_BY(tx_hash, block_time) AS first_event_tx,
+      MAX(block_time)             AS last_event_at,
+      MAX_BY(tx_hash, block_time) AS last_event_tx
     FROM ethereum.logs
     WHERE contract_address IN (
         0xd0415cf4558A0dBEE8242498D25284476bE3c8f2,
@@ -99,13 +122,26 @@ WITH
     GROUP BY 1
   ),
 
-  -- one staked figure per holder (v2 + v3)
+  -- one staked figure per holder (v2 + v3); v2 activity is transfer-based so its
+  -- event dates come from transfer_dates, hence the NULLs here
   stakers_all_grouped AS (
-    SELECT holder, SUM(staked) AS staked
+    SELECT
+      holder,
+      SUM(staked)                              AS staked,
+      MIN(first_event_at)                      AS first_event_at,
+      MIN_BY(first_event_tx, first_event_at)   AS first_event_tx,
+      MAX(last_event_at)                       AS last_event_at,
+      MAX_BY(last_event_tx, last_event_at)     AS last_event_tx
     FROM (
-      SELECT holder, staked FROM stakers_v2_grouped
+      SELECT holder, staked,
+             CAST(NULL AS timestamp) AS first_event_at,
+             CAST(NULL AS varbinary) AS first_event_tx,
+             CAST(NULL AS timestamp) AS last_event_at,
+             CAST(NULL AS varbinary) AS last_event_tx
+      FROM stakers_v2_grouped
       UNION ALL
-      SELECT holder, staked FROM stakers_v3_grouped
+      SELECT holder, staked, first_event_at, first_event_tx, last_event_at, last_event_tx
+      FROM stakers_v3_grouped
     )
     GROUP BY 1
   ),
@@ -115,9 +151,32 @@ WITH
       COALESCE(h.holder, s.holder)                        AS holder,
       COALESCE(h.balance, 0)                              AS balance,
       COALESCE(s.staked, 0)                               AS staked,
-      COALESCE(h.balance, 0) + COALESCE(s.staked, 0)      AS total
+      COALESCE(h.balance, 0) + COALESCE(s.staked, 0)      AS total,
+      -- earliest of first incoming transfer / first v3 stake event; the LEAST +
+      -- COALESCE pairing keeps a real date when either side is NULL
+      LEAST(
+        COALESCE(td.first_received_at, s.first_event_at),
+        COALESCE(s.first_event_at, td.first_received_at)
+      )                                                   AS first_received_at,
+      CASE
+        WHEN td.first_received_at IS NOT NULL
+         AND (s.first_event_at IS NULL OR td.first_received_at <= s.first_event_at)
+        THEN td.first_received_tx
+        ELSE s.first_event_tx
+      END                                                 AS first_received_tx,
+      GREATEST(
+        COALESCE(td.last_transfer_at, s.last_event_at),
+        COALESCE(s.last_event_at, td.last_transfer_at)
+      )                                                   AS last_activity_at,
+      CASE
+        WHEN td.last_transfer_at IS NOT NULL
+         AND (s.last_event_at IS NULL OR td.last_transfer_at >= s.last_event_at)
+        THEN td.last_transfer_tx
+        ELSE s.last_event_tx
+      END                                                 AS last_activity_tx
     FROM holders_grouped h
     FULL OUTER JOIN stakers_all_grouped s ON h.holder = s.holder
+    LEFT JOIN transfer_dates td ON td.holder = COALESCE(h.holder, s.holder)
   ),
 
   price_query AS (
@@ -245,6 +304,12 @@ SELECT
   tc.balance,
   tc.staked,
   tc.total * pq.price AS total_value,
+  '<a href="https://etherscan.io/tx/' || CAST(tc.first_received_tx AS varchar) ||
+    '" target="_blank">' || CAST(CAST(tc.first_received_at AS date) AS varchar) ||
+    '</a>' AS first_received,
+  '<a href="https://etherscan.io/tx/' || CAST(tc.last_activity_tx AS varchar) ||
+    '" target="_blank">' || CAST(CAST(tc.last_activity_at AS date) AS varchar) ||
+    '</a>' AS last_activity,
   COALESCE(
     lm.label,
     cex.distinct_name,

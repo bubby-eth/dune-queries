@@ -1,42 +1,36 @@
 -- ANVL Buys/Sells vs. Price
 -- Dune query 3854984: https://dune.com/queries/3854984
 -- From dashboard: https://dune.com/anvil/anvil
-WITH buys AS (
+--
+-- Daily ANVL bought and sold on DEXes over the last 30 days with the day's
+-- high/low fill price. Single dex.trades scan (previously two); high/low now
+-- cover all fills that day, so days with only sells are included too.
+WITH fills AS (
   SELECT
     DATE_TRUNC('day', block_time) AS date,
-    SUM(token_bought_amount) AS "ANVL Bought",
-    MAX(amount_usd / token_bought_amount) AS "High Price Buys",
-    MIN(amount_usd / token_bought_amount) AS "Low Price Buys"
+    CASE WHEN token_bought_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
+         THEN token_bought_amount END AS bought,
+    CASE WHEN token_sold_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
+         THEN token_sold_amount END AS sold,
+    amount_usd / NULLIF(
+      CASE WHEN token_bought_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
+           THEN token_bought_amount ELSE token_sold_amount END, 0) AS price
   FROM
     dex.trades
   WHERE
     block_time > CURRENT_TIMESTAMP - INTERVAL '30' day
-    AND token_bought_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
-  GROUP BY
-    1
-),
-sells AS (
-  SELECT
-    DATE_TRUNC('day', block_time) AS date,
-    SUM(token_sold_amount) AS "ANVL Sold",
-    MAX(amount_usd / token_sold_amount) AS "High Price Sells",
-    MIN(amount_usd / token_sold_amount) AS "Low Price Sells"
-  FROM
-    dex.trades
-  WHERE
-    block_time > CURRENT_TIMESTAMP - INTERVAL '30' day
-    AND token_sold_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
-  GROUP BY
-    1
+    AND (   token_bought_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
+         OR token_sold_address   = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597)
 )
 SELECT
-  b.date,
-  b."ANVL Bought",
-  COALESCE(s."ANVL Sold", 0) AS "ANVL Sold",
-  GREATEST(b."High Price Buys", s."High Price Sells") AS "High Price",
-  LEAST(b."Low Price Buys", s."Low Price Sells") AS "Low Price"
+  date,
+  COALESCE(SUM(bought), 0) AS "ANVL Bought",
+  COALESCE(SUM(sold), 0)   AS "ANVL Sold",
+  MAX(price)               AS "High Price",
+  MIN(price)               AS "Low Price"
 FROM
-  buys b
-  LEFT JOIN sells s ON b.date = s.date
+  fills
+GROUP BY
+  1
 ORDER BY
-  b.date DESC;
+  date DESC;

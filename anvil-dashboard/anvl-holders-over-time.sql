@@ -8,7 +8,9 @@ WITH
   addresses AS (
     SELECT
       0x2Ca9242c1810029Efed539F1c60D68B63AD01BFc AS token_address,
-      DATE '2020-08-01' AS start_date,
+      -- v1 token went live June 2024; a tight start date keeps the transfer
+      -- scan and the day spine small
+      DATE '2024-06-01' AS start_date,
       DATE '2025-10-01' AS end_date
     UNION ALL
     SELECT
@@ -64,7 +66,7 @@ WITH
     SELECT day
     FROM UNNEST(
       SEQUENCE(
-        CAST(DATE_TRUNC('day', TIMESTAMP '2020-08-01 00:00:00') AS TIMESTAMP),
+        CAST(DATE_TRUNC('day', TIMESTAMP '2024-06-01 00:00:00') AS TIMESTAMP),
         CAST(DATE_TRUNC('day', CURRENT_TIMESTAMP) AS TIMESTAMP),
         INTERVAL '1' DAY
       )

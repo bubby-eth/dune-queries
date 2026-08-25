@@ -23,6 +23,8 @@ WITH
     FROM ethereum.logs
     WHERE contract_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
       AND topic0 = 0xdec2bacdd2f05b59de34da9b523dff8be42e5e38e818c82fdb0bae774387a724
+      -- scan bound: token deployed Oct 2025
+      AND block_time >= TIMESTAMP '2025-10-01'
   ),
 
   current_power AS (
@@ -40,6 +42,7 @@ WITH
     FROM ethereum.logs
     WHERE contract_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
       AND topic0 = 0x3134e8a2e6d97e929a7e54011ea5485d7d196dd5f0ba4d4ef95803e8e3fc257f
+      AND block_time >= TIMESTAMP '2025-10-01'
   ),
 
   current_delegations AS (
@@ -60,6 +63,7 @@ WITH
                     THEN CAST(value AS int256) ELSE -CAST(value AS int256) END) / 1e18 AS total
     FROM erc20_ethereum.evt_Transfer
     WHERE contract_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
+      AND evt_block_time >= TIMESTAMP '2025-10-01'
       AND (   "from" = 0x0000000000000000000000000000000000000000
            OR "to"   = 0x0000000000000000000000000000000000000000)
   )

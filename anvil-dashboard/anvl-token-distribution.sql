@@ -7,13 +7,15 @@ WITH
     SELECT CAST(0xAEEAa594e7dc112D67b8547fe9767a02c15B5597 AS varbinary) AS token
   ),
 
-  -- Signed transfer rows (from = negative, to = positive)
+  -- Signed transfer rows (from = negative, to = positive); scan bounded to
+  -- the token's Oct 2025 deployment
   transfers AS (
     SELECT
       tr."from" AS addr,
       -CAST(tr.value AS INT256) AS amt
     FROM erc20_ethereum.evt_Transfer tr
     JOIN params p ON tr.contract_address = p.token
+    WHERE tr.evt_block_time >= TIMESTAMP '2025-10-01'
 
     UNION ALL
 
@@ -22,6 +24,7 @@ WITH
       CAST(tr.value AS INT256) AS amt
     FROM erc20_ethereum.evt_Transfer tr
     JOIN params p ON tr.contract_address = p.token
+    WHERE tr.evt_block_time >= TIMESTAMP '2025-10-01'
   ),
 
   -- Resolve token decimals once

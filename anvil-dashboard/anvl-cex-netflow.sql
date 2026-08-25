@@ -27,8 +27,8 @@ FROM erc20_ethereum.evt_Transfer tr
 LEFT JOIN cex_eth ct ON ct.address = tr."to"
 LEFT JOIN cex_eth cf ON cf.address = tr."from"
 WHERE tr.contract_address = 0xaeeaa594e7dc112d67b8547fe9767a02c15b5597
-  -- scan bound: comfortably before the ANVL token launch
-  AND tr.evt_block_time >= DATE '2024-06-01'
+  -- scan bound: the current ANVL token deployed Oct 2025
+  AND tr.evt_block_time >= DATE '2025-10-01'
   AND (ct.address IS NOT NULL OR cf.address IS NOT NULL)
 GROUP BY 1
 ORDER BY 1

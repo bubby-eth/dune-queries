@@ -1,7 +1,12 @@
 -- ANVL
 -- Dune query 3839828: https://dune.com/queries/3839828
 -- From dashboard: https://dune.com/anvil/anvil
--- ============ Params ============
+--
+-- Total supply, latest DEX price, and FDV for the ANVL token. Supply is
+-- mints minus burns (zero-address transfers only — summing every holder's
+-- balance change gives the same number at many times the scan cost); the
+-- price is the most recent dex.trades fill. Both scans are bounded to the
+-- token's Oct 2025 deployment.
 WITH
 params AS (
   SELECT
@@ -19,36 +24,19 @@ token_meta AS (
    AND t.blockchain = 'ethereum'
 ),
 
--- ============ Balance Diffs (supply-by-transfers) ============
-anvl AS (
-  -- Incoming transfers
-  SELECT
-    "to" AS holder,
-    e.contract_address AS token_address,
-    CAST("value" AS DECIMAL(38,0)) AS balance_change
-  FROM erc20_ethereum.evt_Transfer e
-  JOIN params p ON e.contract_address = p.token_address
-  WHERE "to" <> 0x0000000000000000000000000000000000000000
-
-  UNION ALL
-
-  -- Outgoing transfers
-  SELECT
-    "from" AS holder,
-    e.contract_address AS token_address,
-    -CAST("value" AS DECIMAL(38,0)) AS balance_change
-  FROM erc20_ethereum.evt_Transfer e
-  JOIN params p ON e.contract_address = p.token_address
-  WHERE "from" <> 0x0000000000000000000000000000000000000000
-),
-
--- ============ Total Supply (base units) ============
+-- ============ Total Supply (mints − burns, base units) ============
 ts AS (
   SELECT
-    a.token_address,
-    SUM(a.balance_change) AS raw_total_supply
-  FROM anvl a
-  GROUP BY a.token_address
+    e.contract_address AS token_address,
+    SUM(CASE WHEN e."from" = 0x0000000000000000000000000000000000000000
+             THEN CAST(e.value AS DECIMAL(38,0))
+             ELSE -CAST(e.value AS DECIMAL(38,0)) END) AS raw_total_supply
+  FROM erc20_ethereum.evt_Transfer e
+  JOIN params p ON e.contract_address = p.token_address
+  WHERE e.evt_block_time >= TIMESTAMP '2025-10-01'
+    AND (   e."from" = 0x0000000000000000000000000000000000000000
+         OR e."to"   = 0x0000000000000000000000000000000000000000)
+  GROUP BY 1
 ),
 
 -- ============ Scaling Factor (10 ^ decimals) ============
@@ -71,6 +59,7 @@ price_latest AS (
   FROM dex.trades d
   JOIN params p ON d.token_bought_address = p.token_address
   WHERE d.blockchain = 'ethereum'
+    AND d.block_time >= TIMESTAMP '2025-10-01'
     AND d.amount_usd IS NOT NULL AND d.amount_usd <> 0
     AND d.token_bought_amount IS NOT NULL AND d.token_bought_amount <> 0
 )

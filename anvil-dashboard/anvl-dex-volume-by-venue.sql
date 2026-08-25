@@ -20,8 +20,8 @@ SELECT
   COUNT(*)                                     AS trades
 FROM dex.trades
 WHERE blockchain = 'ethereum'
-  -- scan bound: comfortably before ANVL's first DEX trade (Oct 2025)
-  AND block_time >= DATE '2025-01-01'
+  -- scan bound: ANVL's first DEX trade was 2025-10-08
+  AND block_time >= DATE '2025-10-01'
   AND (   token_bought_address = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597
        OR token_sold_address   = 0xAEEAa594e7dc112D67b8547fe9767a02c15B5597)
 GROUP BY 1, 2

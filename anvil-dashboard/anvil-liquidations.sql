@@ -4,45 +4,51 @@
 --
 -- Every letter-of-credit liquidation, largest first: LOCConverted (full — the
 -- LOC's collateral is swapped into its credited token) and
--- LOCPartiallyLiquidated (partial). Raw logs on the LetterOfCredit proxy
--- (not decoded on Dune). Collateral amount/fee are in the LOC's collateral
--- token; received value is in its credited token, priced in USD on the event
--- day. Known liquidator contracts are labeled; other parties get the
--- truncated-address treatment.
+-- LOCPartiallyLiquidated (partial), from the decoded LetterOfCredit tables
+-- (anvil_ethereum.letterofcredit_evt_*). Collateral amount/fee are in the
+-- LOC's collateral token; received value is in its credited token, priced in
+-- USD on the event day. Known liquidator contracts are labeled; other parties
+-- get the truncated-address treatment.
 WITH
   created AS (
     SELECT
-      varbinary_to_int256(varbinary_substring(data, 289, 32)) AS loc_id,
-      varbinary_substring(data, 45, 20)                       AS collateral_token,
-      varbinary_substring(data, 237, 20)                      AS credited_token
-    FROM ethereum.logs
-    WHERE contract_address = 0x14db9a91933aD9433E1A0dB04D08e5D9EF7c4808
-      AND topic0 IN (
-        0x53105ebe61784910061b94c58c9a88c322e1c41ea202c65f724153c5d933eda8, -- LOCCreatedV2
-        0x7a259165a2d5de0bc04a49e556d863bb8badf4d0b564e53efa7d66bc17d539f0  -- LOCCreated
-      )
-      AND block_time > TRY_CAST('2024-09-01' AS TIMESTAMP)
+      id                     AS loc_id,
+      collateralTokenAddress AS collateral_token,
+      creditedTokenAddress   AS credited_token
+    FROM anvil_ethereum.letterofcredit_evt_loccreated
+
+    UNION ALL
+
+    SELECT id, collateralTokenAddress, creditedTokenAddress
+    FROM anvil_ethereum.letterofcredit_evt_loccreatedv2
   ),
 
   liquidations AS (
     SELECT
-      block_time,
-      tx_hash,
-      varbinary_to_int256(topic1)                            AS loc_id,
-      varbinary_substring(topic2, 13, 20)                    AS initiator,
-      varbinary_substring(topic3, 13, 20)                    AS liquidator,
-      varbinary_to_int256(varbinary_substring(data, 1, 32))  AS liquidation_amt,
-      varbinary_to_int256(varbinary_substring(data, 33, 32)) AS fee_amt,
-      varbinary_to_int256(varbinary_substring(data, 65, 32)) AS received_amt,
-      CASE WHEN topic0 = 0x21640bc6d24e28d13a51d024a2c86f8dd94df3889ab646059044fad4cf4eded4
-           THEN 'full' ELSE 'partial' END                    AS kind
-    FROM ethereum.logs
-    WHERE contract_address = 0x14db9a91933aD9433E1A0dB04D08e5D9EF7c4808
-      AND topic0 IN (
-        0x21640bc6d24e28d13a51d024a2c86f8dd94df3889ab646059044fad4cf4eded4, -- LOCConverted
-        0x103624043a1a382761fb8e47bd03d967b68fce58c92eabd1c990478babf49d8b  -- LOCPartiallyLiquidated
-      )
-      AND block_time > TRY_CAST('2024-09-01' AS TIMESTAMP)
+      evt_block_time              AS block_time,
+      evt_tx_hash                 AS tx_hash,
+      id                          AS loc_id,
+      initiator,
+      liquidator,
+      liquidationAmount           AS liquidation_amt,
+      liquidationFeeAmount        AS fee_amt,
+      creditedTokenAmountReceived AS received_amt,
+      'full'                      AS kind
+    FROM anvil_ethereum.letterofcredit_evt_locconverted
+
+    UNION ALL
+
+    SELECT
+      evt_block_time,
+      evt_tx_hash,
+      id,
+      initiator,
+      liquidator,
+      liquidationAmount,
+      liquidationFeeAmount,
+      creditedTokenAmountReceived,
+      'partial'
+    FROM anvil_ethereum.letterofcredit_evt_locpartiallyliquidated
   ),
 
   liquidator_labels (addr, label) AS (
@@ -76,11 +82,13 @@ SELECT
 FROM (
   SELECT
     l.*,
-    COALESCE(ctk.symbol, CAST(c.collateral_token AS varchar)) AS collateral_symbol,
-    l.liquidation_amt / POWER(10, COALESCE(ctk.decimals, 18)) AS liquidation_amount,
-    l.fee_amt / POWER(10, COALESCE(ctk.decimals, 18))         AS fee_amount,
-    l.received_amt / POWER(10, COALESCE(dtk.decimals, 18))
-      * p.price                                               AS received_usd
+    COALESCE(ctk.symbol, CAST(c.collateral_token AS varchar))       AS collateral_symbol,
+    CAST(l.liquidation_amt AS double)
+      / POWER(10, COALESCE(ctk.decimals, 18))                       AS liquidation_amount,
+    CAST(l.fee_amt AS double)
+      / POWER(10, COALESCE(ctk.decimals, 18))                       AS fee_amount,
+    CAST(l.received_amt AS double)
+      / POWER(10, COALESCE(dtk.decimals, 18)) * p.price             AS received_usd
   FROM liquidations l
   JOIN created c ON c.loc_id = l.loc_id
   LEFT JOIN tokens.erc20 ctk

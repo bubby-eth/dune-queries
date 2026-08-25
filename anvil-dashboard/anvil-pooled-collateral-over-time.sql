@@ -5,7 +5,8 @@
 -- Daily view of the TimeBasedCollateralPool system: USD value of collateral
 -- held in the vault under pool accounts (pooled_usd, vault-side decoded
 -- accounting) and the number of active stakers across all pools (accounts with
--- positive pool units, pool-side raw logs). One query, two widgets: an area
+-- positive pool units, from the decoded
+-- anvil_ethereum.timebasedcollateralpool_evt_* tables). One query, two widgets: an area
 -- chart mapping pooled_usd and a line chart mapping active_stakers.
 -- Pool list is discovered from CollateralizableContractApprovalUpdated.
 WITH
@@ -80,26 +81,28 @@ WITH
     GROUP BY 1
   ),
 
-  -- pool-side stake/unstake units per staker per day (raw logs)
+  -- pool-side stake/unstake units per staker per day (decoded pool tables)
   staker_flows AS (
-    SELECT
-      CAST(l.block_time AS date) AS day,
-      l.contract_address AS pool,
-      varbinary_substring(l.topic1, 13, 20) AS staker,
-      SUM(
-        CASE
-          WHEN l.topic0 = 0xa7b456599fe289da1e1af41ace1eaafeb22eb6daaf83cb8c545bb631963aa373
-          THEN varbinary_to_int256(varbinary_substring(l.data, 33, 32))
-          ELSE -varbinary_to_int256(varbinary_substring(l.data, 1, 32))
-        END
-      ) AS units
-    FROM ethereum.logs l
-    JOIN pools p ON p.pool = l.contract_address
-    WHERE l.topic0 IN (
-        0xa7b456599fe289da1e1af41ace1eaafeb22eb6daaf83cb8c545bb631963aa373, -- CollateralStaked
-        0x282129d404496635cd18d83022451839006a0623bada56a71d3b1e204231dbe0  -- UnstakeInitiated
-      )
-      AND l.block_time > TRY_CAST('2024-10-01' AS TIMESTAMP)
+    SELECT day, pool, staker, SUM(units) AS units
+    FROM (
+      SELECT
+        s.evt_block_date                  AS day,
+        s.contract_address                AS pool,
+        s.account                         AS staker,
+        CAST(s.poolUnitsIssued AS int256) AS units
+      FROM anvil_ethereum.timebasedcollateralpool_evt_collateralstaked s
+      JOIN pools p ON p.pool = s.contract_address
+
+      UNION ALL
+
+      SELECT
+        u.evt_block_date,
+        u.contract_address,
+        u.account,
+        -CAST(u.unitsToUnstake AS int256)
+      FROM anvil_ethereum.timebasedcollateralpool_evt_unstakeinitiated u
+      JOIN pools p ON p.pool = u.contract_address
+    )
     GROUP BY 1, 2, 3
   ),
 

@@ -2,64 +2,55 @@
 -- Dune query 8423834: https://dune.com/queries/8423834
 -- From dashboard: https://dune.com/anvil/anvil
 --
--- Weekly letter-of-credit lifecycle on the LetterOfCredit proxy
--- (0x14db9a91933aD9433E1A0dB04D08e5D9EF7c4808, not decoded on Dune):
+-- Weekly letter-of-credit lifecycle from the decoded LetterOfCredit tables
+-- (anvil_ethereum.letterofcredit_evt_*, proxy 0x14db9a91933aD9433E1A0dB04D08e5D9EF7c4808):
 --   LOCCreated / LOCCreatedV2 -> new credit issued (face value = creditedTokenAmount)
 --   LOCRedeemed               -> beneficiary drew the credit
 --   LOCCanceled               -> closed unused (face value from its creation event)
 --   LOCConverted / LOCPartiallyLiquidated -> collateral liquidated into the
 --     credited token (value = creditedTokenAmountReceived)
 -- USD values price each amount in its credited token (mostly stablecoins) on
--- the event day. v1 and v2 creation events share data offsets for the fields
--- read here; ids come from one shared counter so the creation map covers both.
+-- the event day. v1 and v2 ids come from one shared counter, so the creation
+-- map covers both.
 WITH
   created AS (
     SELECT
-      block_time,
-      tx_hash,
-      varbinary_to_int256(varbinary_substring(data, 289, 32))      AS loc_id,
-      varbinary_substring(data, 237, 20)                           AS credited_token,
-      varbinary_to_int256(varbinary_substring(data, 257, 32))      AS credited_amt
-    FROM ethereum.logs
-    WHERE contract_address = 0x14db9a91933aD9433E1A0dB04D08e5D9EF7c4808
-      AND topic0 IN (
-        0x53105ebe61784910061b94c58c9a88c322e1c41ea202c65f724153c5d933eda8, -- LOCCreatedV2
-        0x7a259165a2d5de0bc04a49e556d863bb8badf4d0b564e53efa7d66bc17d539f0  -- LOCCreated
-      )
-      AND block_time > TRY_CAST('2024-09-01' AS TIMESTAMP)
+      evt_block_time       AS block_time,
+      id                   AS loc_id,
+      creditedTokenAddress AS credited_token,
+      creditedTokenAmount  AS credited_amt
+    FROM anvil_ethereum.letterofcredit_evt_loccreated
+
+    UNION ALL
+
+    SELECT evt_block_time, id, creditedTokenAddress, creditedTokenAmount
+    FROM anvil_ethereum.letterofcredit_evt_loccreatedv2
   ),
 
   redeemed AS (
     SELECT
-      block_time,
-      varbinary_to_int256(topic1)                                  AS loc_id,
-      varbinary_to_int256(varbinary_substring(data, 1, 32))        AS credited_amt
-    FROM ethereum.logs
-    WHERE contract_address = 0x14db9a91933aD9433E1A0dB04D08e5D9EF7c4808
-      AND topic0 = 0xa401b77f6ebc213dba24e20584bca0389bbd6391cf1498bbbf4feac74932f68a
-      AND block_time > TRY_CAST('2024-09-01' AS TIMESTAMP)
+      evt_block_time      AS block_time,
+      id                  AS loc_id,
+      creditedTokenAmount AS credited_amt
+    FROM anvil_ethereum.letterofcredit_evt_locredeemed
   ),
 
   canceled AS (
-    SELECT block_time, varbinary_to_int256(topic1) AS loc_id
-    FROM ethereum.logs
-    WHERE contract_address = 0x14db9a91933aD9433E1A0dB04D08e5D9EF7c4808
-      AND topic0 = 0x1706888457c949ef810b6308f2cb8280ecb6d22a992c4b53cf15f25405020c10
-      AND block_time > TRY_CAST('2024-09-01' AS TIMESTAMP)
+    SELECT evt_block_time AS block_time, id AS loc_id
+    FROM anvil_ethereum.letterofcredit_evt_loccanceled
   ),
 
   liquidated AS (
     SELECT
-      block_time,
-      varbinary_to_int256(topic1)                                  AS loc_id,
-      varbinary_to_int256(varbinary_substring(data, 65, 32))       AS credited_amt
-    FROM ethereum.logs
-    WHERE contract_address = 0x14db9a91933aD9433E1A0dB04D08e5D9EF7c4808
-      AND topic0 IN (
-        0x21640bc6d24e28d13a51d024a2c86f8dd94df3889ab646059044fad4cf4eded4, -- LOCConverted
-        0x103624043a1a382761fb8e47bd03d967b68fce58c92eabd1c990478babf49d8b  -- LOCPartiallyLiquidated
-      )
-      AND block_time > TRY_CAST('2024-09-01' AS TIMESTAMP)
+      evt_block_time              AS block_time,
+      id                          AS loc_id,
+      creditedTokenAmountReceived AS credited_amt
+    FROM anvil_ethereum.letterofcredit_evt_locconverted
+
+    UNION ALL
+
+    SELECT evt_block_time, id, creditedTokenAmountReceived
+    FROM anvil_ethereum.letterofcredit_evt_locpartiallyliquidated
   ),
 
   -- every lifecycle event with its credited token and amount (redemptions,
@@ -91,7 +82,7 @@ WITH
     SELECT
       DATE_TRUNC('week', e.block_time) AS week,
       e.kind,
-      e.credited_amt / POWER(10, COALESCE(tk.decimals, 18)) * p.price AS usd
+      CAST(e.credited_amt AS double) / POWER(10, COALESCE(tk.decimals, 18)) * p.price AS usd
     FROM events e
     LEFT JOIN tokens.erc20 tk
       ON tk.blockchain = 'ethereum' AND tk.contract_address = e.credited_token

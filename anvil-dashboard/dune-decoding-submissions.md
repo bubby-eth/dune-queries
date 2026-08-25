@@ -4,11 +4,13 @@ Submit at https://dune.com/contracts/new (project name: `anvil`, chain: Ethereum
 Already decoded, no action needed: CollateralVault
 (`anvil_ethereum.collateralvault_*`).
 
-Status 2026-08-24: items 1-6 below were accepted — decoded tables exist for
-LetterOfCredit, TimeBasedCollateralPool, AnvilGovernor, AnvilTimelock, and the
-liquidators — but all had 0 rows (backfill pending) while raw logs show real
-activity. Recheck before rewriting raw-log queries; resubmit against the proxy
-addresses if still empty ~Sep 2026.
+Status 2026-08-25: backfill landed for items 1-6 — decoded row counts match
+raw logs exactly (LOC lifecycle, TBCP stake/unstake across all 20 pools,
+Governor proxy VoteCast/proposals, Timelock). The four raw-log queries
+(8423834, 8423835, 8424123, 8424124) have been rewritten onto the decoded
+tables. Item 0 (the new ANVL token) is still NOT decoded — `anvil_evt_*` has
+0 rows for 0xAEEA...5597 — so queries 8425041/8425043 stay on raw logs;
+recheck ~Oct 2026 and resubmit if still absent.
 
 ## 0. Current ANVL token — HIGH priority (NEW)
 

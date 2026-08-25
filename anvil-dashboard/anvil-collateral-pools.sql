@@ -4,8 +4,9 @@
 --
 -- One row per TimeBasedCollateralPool: collateral held in the vault under the
 -- pool's account (TVL, from decoded CollateralVault events), active stakers
--- (accounts with positive pool units, from raw pool logs — pools are beacon
--- proxies and not decoded on Dune), share of all pooled value, and first/last
+-- (accounts with positive pool units, from the decoded
+-- anvil_ethereum.timebasedcollateralpool_evt_* tables, which cover all beacon
+-- proxy instances), share of all pooled value, and first/last
 -- pool activity linked to its tx. The pool list is discovered from the vault's
 -- CollateralizableContractApprovalUpdated events (isCollateralPool = true), so
 -- newly deployed pools show up automatically. Pool units convert 1:1 to tokens
@@ -77,25 +78,27 @@ WITH
     GROUP BY 1
   ),
 
-  -- pool-side stake/unstake events (raw logs; see amp v3 queries for offsets)
+  -- pool-side stake/unstake events (decoded TimeBasedCollateralPool tables)
   stake_events AS (
     SELECT
-      l.contract_address AS pool,
-      varbinary_substring(l.topic1, 13, 20) AS staker,
-      CASE
-        WHEN l.topic0 = 0xa7b456599fe289da1e1af41ace1eaafeb22eb6daaf83cb8c545bb631963aa373
-        THEN varbinary_to_int256(varbinary_substring(l.data, 33, 32))  -- poolUnitsIssued
-        ELSE -varbinary_to_int256(varbinary_substring(l.data, 1, 32))  -- unitsToUnstake
-      END AS units,
-      l.block_time,
-      l.tx_hash
-    FROM ethereum.logs l
-    JOIN pools p ON p.pool = l.contract_address
-    WHERE l.topic0 IN (
-        0xa7b456599fe289da1e1af41ace1eaafeb22eb6daaf83cb8c545bb631963aa373, -- CollateralStaked
-        0x282129d404496635cd18d83022451839006a0623bada56a71d3b1e204231dbe0  -- UnstakeInitiated
-      )
-      AND l.block_time > TRY_CAST('2024-10-01' AS TIMESTAMP)
+      s.contract_address              AS pool,
+      s.account                       AS staker,
+      CAST(s.poolUnitsIssued AS int256) AS units,
+      s.evt_block_time                AS block_time,
+      s.evt_tx_hash                   AS tx_hash
+    FROM anvil_ethereum.timebasedcollateralpool_evt_collateralstaked s
+    JOIN pools p ON p.pool = s.contract_address
+
+    UNION ALL
+
+    SELECT
+      u.contract_address,
+      u.account,
+      -CAST(u.unitsToUnstake AS int256),
+      u.evt_block_time,
+      u.evt_tx_hash
+    FROM anvil_ethereum.timebasedcollateralpool_evt_unstakeinitiated u
+    JOIN pools p ON p.pool = u.contract_address
   ),
 
   pool_stakers AS (

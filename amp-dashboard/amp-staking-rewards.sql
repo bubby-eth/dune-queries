@@ -8,17 +8,15 @@
 -- scalar columns for the counters: total rewards paid, unique claimants, and
 -- the contract's remaining AMP budget (funded minus paid, verified equal to
 -- its live balance).
--- Source: raw logs (contract not decoded on Dune):
---   RewardsClaimed(address indexed byAccount, uint256 amount)
+-- Source: decoded amp_ethereum.reward_evt_rewardsclaimed
+-- (RewardsClaimed(address indexed byAccount, uint256 amount)).
 WITH
   claims AS (
     SELECT
-      block_time,
-      varbinary_substring(topic1, 13, 20)                       AS account,
-      varbinary_to_int256(varbinary_substring(data, 1, 32)) / 1e18 AS amp
-    FROM ethereum.logs
-    WHERE contract_address = 0x87A07ABF94e1aB709c2e5c3ed4A1FE76901f4593
-      AND topic0 = 0xfc30cddea38e2bf4d6ea7d3f9ed3b6ad7f176419f4963bd81318067a4aee73fe
+      evt_block_time                AS block_time,
+      byAccount                     AS account,
+      CAST(amount AS double) / 1e18 AS amp
+    FROM amp_ethereum.reward_evt_rewardsclaimed
   ),
 
   funding AS (
